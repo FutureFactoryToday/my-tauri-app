@@ -1,0 +1,63 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--bg-dark); /* Черный фон как в App */
+  display: flex;
+  flex-direction: column;
+  z-index: 9999;
+  padding: var(--gap); /* Используем тот же зазор 20px */
+  box-sizing: border-box;
+}
+
+.title {
+  color: var(--text-white);
+  margin: 0 0 var(--gap) 0;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.inputField {
+  flex: 1;
+  width: 100%;
+  background-color: #ffffff; /* Белое поле ввода */
+  color: #000000;            /* Черный текст в поле */
+  border: none;
+  padding: 20px;
+  font-family: 'Courier New', monospace;
+  font-size: 1.8rem;
+  resize: none;
+  margin-bottom: var(--gap);
+  border-radius: 4px;
+  outline: none;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: var(--gap);
+  height: 80px;
+}
+
+.btn {
+  flex: 1;
+  background-color: var(--light-blue); /* Светло-голубые кнопки */
+  color: #001f3f;                     /* Тёмно-синий текст на кнопках для контраста */
+  border: none;
+  border-radius: 4px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:active {
+  background-color: #90ccd6; /* Чуть темнее при нажатии */
+}

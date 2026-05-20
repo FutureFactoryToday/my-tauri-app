@@ -1,0 +1,11 @@
+.tile {
+  background-color: var(--tile-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: opacity 0.2s;
+}
+.tile:hover { opacity: 0.8; }
+.text { color: white; font-weight: bold; font-size: 1.2rem; }

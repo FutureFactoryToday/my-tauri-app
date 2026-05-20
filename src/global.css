@@ -1,0 +1,16 @@
+:root {
+  --bg-dark: #050505;
+  --tile-blue: #001f3f;   /* Тёмно-синий для плиток */
+  --light-blue: #add8e6;  /* Светло-голубой для окна */
+  --text-white: #ffffff;
+  --gap: 20px;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-white);
+  font-family: 'Segoe UI', sans-serif;
+  overflow: hidden;
+}
