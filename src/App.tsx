@@ -1,52 +1,69 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 function App() {
-  const [isOn, setIsOn] = useState(false);
+  const [status, setStatus] = useState("Подключение...");
+  const [logs, setLogs] = useState([]);
+  const [command, setCommand] = useState("");
+  const socketRef = useRef(null);
+
+  // 1. Инициализация соединения при запуске
+  useEffect(() => {
+    // Укажи IP адрес Orange Pi, если демон запущен на ней (например 'ws://192.168.1.15:8080/ws')
+    // Если тестируешь локально — оставляй localhost
+    const ws = new WebSocket("ws://localhost:8080/ws");
+    socketRef.current = ws;
+
+    ws.onopen = () => setStatus("Подключено к L2 (Online)");
+    ws.onclose = () => setStatus("Связь с L2 потеряна (Offline)");
+    ws.onerror = () => setStatus("Ошибка сети");
+
+    // Прием данных от демона (ответы от L1 или Loopback)
+    ws.onmessage = (event) => {
+      const message = event.data;
+      setLogs((prev) => [...prev.slice(-10), `Станок: ${message}`]);
+    };
+
+    return () => ws.close(); // Закрываем сокет при выходе
+  }, []);
+
+  // 2. Функция отправки команды
+  const sendToMachine = (text) => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      socketRef.current.send(text);
+      setLogs((prev) => [...prev.slice(-10), `Вы: ${text}`]);
+      setCommand(""); // Очистить поле ввода
+    }
+  };
 
   return (
-    <div className="app-viewport">
-      {/* iOS Переключатель в углу */}
-      <div className="ios-corner-toggle">
-        <label className="ios-switch">
-          <input 
-            type="checkbox" 
-            checked={isOn} 
-            onChange={() => setIsOn(!isOn)} 
-          />
-          <span className="ios-slider"></span>
-        </label>
+    <div className="container">
+      <div className={`status-bar ${status.includes("Online") ? "online" : "offline"}`}>
+        {status}
       </div>
 
-      {/* Контейнер с плитками */}
-      <div className="container">
-        
-        {/* Первая плитка */}
-        <div className="metro-card">
-          <div className="card-inner">
-            <div className="front">
-              <div className="icon">✦</div>
-              <div className="label">дизайн</div>
-            </div>
-            <div className="back">
-              <p>Tauri + React позволяют создавать интерфейсы быстрее и легче Electron.</p>
-            </div>
-          </div>
-        </div>
+      <div className="log-window">
+        {logs.map((log, i) => (
+          <div key={i} className="log-entry">{log}</div>
+        ))}
+      </div>
 
-        {/* Вторая плитка */}
-        <div className="metro-card" style={{ animationDelay: '0.2s' }}>
-          <div className="card-inner">
-            <div className="front" style={{ backgroundColor: '#107c10' }}>
-              <div className="icon">⚙</div>
-              <div className="label">настройки</div>
-            </div>
-            <div className="back" style={{ backgroundColor: '#0b5a0b' }}>
-              <p>Вы можете менять бэкенд на Rust, сохраняя красоту фронтенда.</p>
-            </div>
-          </div>
-        </div>
+      <div className="controls">
+        <input 
+          value={command} 
+          onChange={(e) => setCommand(e.target.value)}
+          placeholder="Введите G-код (напр. G0 X10)"
+          onKeyDown={(e) => e.key === 'Enter' && sendToMachine(command)}
+        />
+        <button onClick={() => sendToMachine(command)}>Отправить</button>
+      </div>
 
+      <div className="jog-panel">
+        <h3>Ручное управление (Jogging)</h3>
+        <button onClick={() => sendToMachine("G0 X-10")}>X-</button>
+        <button onClick={() => sendToMachine("G0 X10")}>X+</button>
+        <button onClick={() => sendToMachine("G0 Y10")}>Y+</button>
+        <button onClick={() => sendToMachine("G0 Y-10")}>Y-</button>
       </div>
     </div>
   );
