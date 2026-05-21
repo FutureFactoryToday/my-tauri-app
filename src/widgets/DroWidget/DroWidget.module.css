@@ -1,5 +1,6 @@
 .tile {
   background-color: var(--tile-blue);
+  opacity: 0.6;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,5 +8,11 @@
   border-radius: 4px;
   transition: opacity 0.2s;
 }
-.tile:hover { opacity: 0.8; }
-.text { color: white; font-weight: bold; font-size: 1.2rem; }
+.tile:hover { 
+  opacity: 1;
+}
+.text {
+  color: white;
+  font-weight: bold;
+  font-size: 1.2rem;
+}

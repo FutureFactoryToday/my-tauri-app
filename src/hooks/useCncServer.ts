@@ -48,15 +48,15 @@ export const useCncServer = (url: string) => {
   }, [url]);
 
 
+  // useEffect(() => {
+  //   connect();
+  //   return () => {
+  //     ws.current?.close();
+  //   };
+  // }, [connect]);
+
+
   useEffect(() => {
-    connect();
-    return () => {
-      ws.current?.close();
-    };
-  }, [connect]);
-
-
-  /*useEffect(() => {
     const socket = new WebSocket(url);
     ws.current = socket;
     socket.onopen = () => {
@@ -67,12 +67,14 @@ export const useCncServer = (url: string) => {
       console.log("L3 Connecting Closed");
       setIsConnected(false);
     }
-    socket.onerror = (error) => {
+    socket.onmessage= (error) => {
       console.log("L3 Connecting ERROR");
-      setIsConnected(false);
+      setLastMessage(error.data);
     }
-    return () => socket.close();
-  }, [url]);*/
+    return () => {
+      socket.close();
+    };
+  }, []);
 
   const send = (msg: string) => {
     if (ws.current?.readyState === WebSocket.OPEN) 
