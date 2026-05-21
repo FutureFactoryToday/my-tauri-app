@@ -1,20 +1,90 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export const useCncServer = (url: string) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [lastMessage, setLastMessage] = useState("");
   const ws = useRef<WebSocket | null>(null);
+  const reconnectTimerRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    const socket = new WebSocket(url);
-    ws.current = socket;
-    socket.onopen = () => setIsConnected(true);
-    socket.onclose = () => setIsConnected(false);
-    return () => socket.close();
+  const connect = useCallback(() => {
+
+    if(ws.current?.readyState === WebSocket.OPEN || ws.current?.readyState === WebSocket.CONNECTING) return;
+
+    console.log(`L3 Probing link to ${url}...`);
+    const nws = new WebSocket(url);
+
+    nws.onopen = () => {
+      console.log("L3 Connecting OK");
+      setIsConnected(true);
+      if(reconnectTimerRef.current){
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
+    };
+
+    nws.onmessage = (event) => {
+      setLastMessage(event.data);
+    }
+
+    nws.onclose = () => {
+      setIsConnected(false);
+      ws.current = null;
+      console.log(`L3 Link closed (code: ${event.code}). Reconnect after 2 sec`);
+
+      if(!reconnectTimerRef.current) {
+        reconnectTimerRef.current = window.setTimeout(() => {
+          reconnectTimerRef.current = null;
+          connect();
+        }, 2000);
+      }
+    };
+
+    nws.onerror = (error) => {
+      console.log("L3 Connecting ERROR");
+      nws.close();
+    };
+
+    ws.current = nws;
   }, [url]);
 
+
+  useEffect(() => {
+    connect();
+    return () => {
+      ws.current?.close();
+    };
+  }, [connect]);
+
+
+  /*useEffect(() => {
+    const socket = new WebSocket(url);
+    ws.current = socket;
+    socket.onopen = () => {
+      console.log("L3 Connecting OK");
+      setIsConnected(true);
+    }
+    socket.onclose = () => {
+      console.log("L3 Connecting Closed");
+      setIsConnected(false);
+    }
+    socket.onerror = (error) => {
+      console.log("L3 Connecting ERROR");
+      setIsConnected(false);
+    }
+    return () => socket.close();
+  }, [url]);*/
+
   const send = (msg: string) => {
-    if (ws.current?.readyState === WebSocket.OPEN) ws.current.send(msg);
+    if (ws.current?.readyState === WebSocket.OPEN) 
+    {
+      console.log("L3 -> Sending to L2:", msg);
+      ws.current.send(msg);
+    }
+    else
+    {
+      console.error("L3: Socket not ready. State");
+    }
   };
 
-  return { isConnected, send };
+  return { isConnected, lastMessage, send };
 };
