@@ -4,6 +4,7 @@
   --light-blue: #add8e6;  /* Светло-голубой для окна */
   --text-white: #ffffff;
   --gap: 20px;
+  --opacity: 0.8;
 }
 
 body, html {
@@ -11,6 +12,6 @@ body, html {
   padding: 0;
   background-color: var(--bg-dark);
   color: var(--text-white);
-  font-family: 'Segoe UI', sans-serif;
+  font-family: 'Arial';
   overflow: hidden;
 }
