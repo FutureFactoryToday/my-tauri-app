@@ -1,0 +1,101 @@
+.tile {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 15px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-width: 280px;
+}
+
+.header {
+  font-size: 0.9rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 5px;
+}
+
+.illuminatorRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.illuminatorRow span {
+  width: 55px; /* Фиксированная ширина для выравнивания полей в колонку */
+  font-size: 0.85rem;
+}
+
+/* iOS Switch Styles */
+.iosSwitch {
+  width: 46px;
+  height: 26px;
+  background-color: #39393d;
+  border-radius: 13px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
+}
+
+.iosSwitch.on {
+  background-color: #34c759;
+}
+
+.handle {
+  width: 22px;
+  height: 22px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.iosSwitch.on .handle {
+  transform: translateX(20px);
+}
+
+/* Input Group */
+.inputGroup {
+  display: flex;
+  gap: 5px;
+  transition: opacity 0.3s ease;
+}
+
+.inputGroup.disabled {
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.input {
+  width: 50px;
+  background: #333;
+  border: 1px solid #444;
+  color: white;
+  padding: 5px;
+  border-radius: 6px;
+  text-align: center;
+  outline: none;
+}
+
+.submitBtn {
+  background: #007aff;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.submitBtn:active {
+  background: #0056b3;
+}

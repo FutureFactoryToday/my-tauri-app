@@ -3,6 +3,8 @@ import styles from './App.module.css';
 import './global.css';
 import Shell from './layout/Shell/Shell';
 import DroWidget from './widgets/DroWidget/DroWidget';
+import AchtWidget from './widgets/AchtWidget/AchtWidget';
+import IlluminatorWidget from './widgets/IlluminatorWidget/IlluminatorWidget';
 import ManualOperating from './components/Manuals/ManualOperating';
 import { useCncServer } from './hooks/useCncServer';
 
@@ -21,13 +23,56 @@ export default function App() {
             setOpen(true);
             }}
         />
+        
+        <AchtWidget 
+          label="ACHT Control"
+          currentTemp={24.5} // Здесь можно передать переменную из сокета
+          onHeatChange={(active) => {
+            console.log("Heater status:", active);
+            // Например: send(active ? "HEATER_ON" : "HEATER_OFF");
+          }}
+          onFanChange={(active) => {
+            console.log("Fan status:", active);
+            // Например: send(active ? "M106" : "M107");
+          }}
+          onValueSubmit={(value) => {
+            console.log("Setting target temp to:", value);
+            if(isConnected) {
+              send(`M104 S${value}`); // Отправка G-кода в станок
+            }
+          }}
+        />
+
+        <IlluminatorWidget 
+          label="Illumination"
+          onVisibleChange={(active, power) => {
+            console.log("White Light:", active, "Power:", power);
+            if(isConnected) {
+              // Пример команды: L1 - тип лампы, S - мощность
+              send(`M150 L1 S${active ? power : 0}`); 
+            }
+          }}
+          on800nmChange={(active, power) => {
+            console.log("800nm (IR):", active, "Power:", power);
+            if(isConnected) {
+              send(`M150 L2 S${active ? power : 0}`);
+            }
+          }}
+          on365nmChange={(active, power) => {
+            console.log("365nm (UV):", active, "Power:", power);
+            if(isConnected) {
+              send(`M150 L3 S${active ? power : 0}`);
+            }
+          }}
+        />
+
         {/* Остальные 11 плиток */}
-        {Array.from({ length: 11 }).map((_, i) => (
+        {/*{Array.from({ length: 2 }).map((_, i) => (
           <DroWidget 
             key={i} 
             label={`EMPTY ${i + 2}`} 
           />
-        ))}
+        ))}*/}
       </div>
 
       {/* Manual control window */}
