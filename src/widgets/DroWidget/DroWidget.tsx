@@ -1,4 +1,3 @@
-import React from 'react';
 import styles from './DroWidget.module.css';
 
 interface Props { 

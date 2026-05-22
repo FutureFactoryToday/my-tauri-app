@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styles from './App.module.css';
 import './global.css';
 import Shell from './layout/Shell/Shell';

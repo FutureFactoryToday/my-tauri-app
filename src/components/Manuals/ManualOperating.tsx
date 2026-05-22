@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import styles from './ManualOperating.module.css';
 
 interface Props {
@@ -10,12 +10,12 @@ interface Props {
 export default function ManualOperating({ onClose, onSend, lastResponse }: Props) {
   const [val, setVal] = useState("");
 
-  const handleSend = () => {
-    if (val.trim()) {
-      onSend(val);
-      setVal(""); // Очищаем поле после отправки
-    }
-  };
+  // const handleSend = () => {
+  //   if (val.trim()) {
+  //     onSend(val);
+  //     setVal(""); // Очищаем поле после отправки
+  //   }
+  // };
 
   return (
     <div className={styles.overlay}>

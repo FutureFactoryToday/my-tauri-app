@@ -26,7 +26,7 @@ export const useCncServer = (url: string) => {
       setLastMessage(event.data);
     }
 
-    nws.onclose = () => {
+    nws.onclose = (event: CloseEvent) => {
       setIsConnected(false);
       ws.current = null;
       console.log(`L3 Link closed (code: ${event.code}). Reconnect after 2 sec`);
@@ -39,7 +39,7 @@ export const useCncServer = (url: string) => {
       }
     };
 
-    nws.onerror = (error) => {
+    nws.onerror = () => {
       console.log("L3 Connecting ERROR");
       nws.close();
     };
