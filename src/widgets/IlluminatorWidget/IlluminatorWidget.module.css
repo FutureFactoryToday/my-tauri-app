@@ -1,4 +1,5 @@
 .tile {
+  /* Сохраняем ваши базовые стили */
   background-color: var(--tile-blue);
   opacity: var(--opacity);
   border: 1px solid #333;
@@ -6,12 +7,45 @@
   color: white;
   display: flex;
   flex-direction: column;
-  gap: 50px; /* Увеличен зазор, чтобы рамки не слипались */
-  min-width: 250px;
+  gap: 30px;
+  min-width: 300px;
+  transition: all 0.2s ease;
+
+  /* Добавляем эффект среза */
+  position: relative;
+  overflow: hidden; /* Скрываем лишнее */
 }
 
 .tile:hover { 
   opacity: 1;
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  /* ВАЖНО: Заменяем белый цвет на градиент */
+  background-image: linear-gradient(
+    -90deg,             /* Угол градиента — параллельно срезу */
+    rgba(255, 255, 255, 0.15) 0%,  /* Светлый край у границы среза */
+    transparent 40%   /* Полное исчезновение*/
+  );
+
+  /* Делает фон на заднем плане, относительно размещаемых компонентов */
+  /*z-index: -1;*/
+
+  /*Координаты фигуры, для заливки градиентов*/
+  clip-path: polygon(
+    95% 0,
+    30% 30%,
+    30% 0           
+  );
+
+  transition: opacity 0.2s ease;
 }
 
 .header {
@@ -52,10 +86,10 @@
 
 /* iOS Switch Styles */
 .iosSwitch {
-  width: 42px;
-  height: 24px;
+  width: 46px;
+  height: 26px;
   background-color: #39393d;
-  border-radius: 12px;
+  border-radius: 13px;
   position: relative;
   cursor: pointer;
   transition: background-color 0.3s ease;
@@ -66,18 +100,19 @@
 }
 
 .handle {
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   background-color: white;
   border-radius: 50%;
   position: absolute;
   top: 2px;
   left: 2px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .iosSwitch.on .handle {
-  transform: translateX(18px);
+  transform: translateX(20px);
 }
 
 /* Input Group */

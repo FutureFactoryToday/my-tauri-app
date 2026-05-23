@@ -1,0 +1,261 @@
+.tile {
+  /* Сохраняем ваши базовые стили */
+  background-color: var(--tile-blue);
+  opacity: var(--opacity);
+  border: 1px solid #333;
+  padding: 30px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  min-width: 300px;
+  transition: all 0.2s ease;
+
+  /* Добавляем эффект среза */
+  position: relative;
+  overflow: hidden; /* Скрываем лишнее */
+}
+
+.tile:hover { 
+  opacity: 1;
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  /* ВАЖНО: Заменяем белый цвет на градиент */
+  background-image: linear-gradient(
+    -90deg,             /* Угол градиента — параллельно срезу */
+    rgba(255, 255, 255, 0.15) 0%,  /* Светлый край у границы среза */
+    transparent 40%    /* Полное исчезновение*/
+  );
+
+  /* Делает фон на заднем плане, относительно размещаемых компонентов */
+  /*z-index: -1;*/
+
+  /*Координаты фигуры, для заливки градиентов*/
+  clip-path: polygon(
+    95% 0,
+    30% 30%,
+    30% 0           
+  );
+
+  transition: opacity 0.2s ease;
+}
+
+.header {
+  font-family: 'Arial';
+  font-size: 1rem;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Общие стили для панелей */
+.panel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 15px;
+  background: #252525;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* 1. Стили панели инициализации */
+.homeBtn {
+  background: #1c77bd;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Arial';
+  font-size: 0.8rem;
+}
+
+.homeBtn:active {
+  background: #0056b3;
+}
+
+.statusDisplay {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.statusLabel {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #666;
+}
+
+.statusValue {
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+.ready {
+  color: #00ff00;
+}
+
+.notReady {
+  color: #ff6b6b;
+}
+
+/* 2. Стили панели управления положением */
+.modeSelect {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #444;
+  color: black;
+  padding: 8px;
+  border-radius: 6px;
+  outline: none;
+  width: 60px;
+}
+
+.modeSelect:disabled {
+  background: #555;
+  color: #888;
+}
+
+.goBtn {
+  background: #1c77bd;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Arial';
+  font-size: 0.8rem;
+}
+
+.goBtn:active {
+  background: #0056b3;
+}
+
+.goBtn:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+/* 3. Стили панели точного управления */
+
+/* iOS Switch Styles */
+.iosSwitch {
+  width: 46px;
+  height: 26px;
+  background-color: #39393d;
+  border-radius: 13px;
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.iosSwitch.on {
+  background-color: #1c77bd;
+}
+
+.handle {
+  width: 22px;
+  height: 22px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.iosSwitch.on .handle {
+  transform: translateX(20px);
+}
+
+/* Ползунок кратности перемещения */
+.multiplierSlider {
+  display: flex;
+  gap: 10px;
+  margin-left: 10px;
+}
+
+.multiplierSlider.disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.multiplierSlider button {
+  padding: 6px 12px;
+  border: 1px solid #444;
+  background: #333;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+
+.multiplierSlider button:disabled {
+  background: #555;
+  cursor: not-allowed;
+}
+
+.activeMultiplier {
+  background: #1c77bd !important;
+  border-color: #1c77bd;
+}
+
+/* Маховик (ручной генератор импульсов) */
+.handwheel {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #333 0%, #111 100%);
+  border: 2px solid #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  margin-left: auto;
+  position: relative;
+  overflow: hidden;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.handwheel:active {
+  cursor: grabbing;
+  box-shadow: inset 0 0 15px rgba(0,0,0,0.7);
+}
+
+.handwheel.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.handwheelInner {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle at center, #444 0%, #222 70%, #111 100%);
+  position: relative;
+}
+
+.cursorSpot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  background: #ff6b6b;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #ff6b6b;
+}
