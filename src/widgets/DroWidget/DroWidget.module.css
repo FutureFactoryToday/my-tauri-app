@@ -1,14 +1,51 @@
 .tile {
+  /* Сохраняем ваши базовые стили */
   background-color: var(--tile-blue);
-  opacity: 0.6;
+  opacity: var(--opacity);
+  border: 1px solid #333;
+  padding: 30px;
+  color: white;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: opacity 0.2s;
+  flex-direction: column;
+  gap: 30px;
+  min-width: 300px;
+  transition: all 0.2s ease;
+
+  /* Добавляем эффект среза */
+  position: relative;
+  overflow: hidden; /* Скрываем лишнее */
 }
+
 .tile:hover { 
   opacity: 1;
+}
+
+.tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  
+  /* ВАЖНО: Заменяем белый цвет на градиент */
+  background-image: linear-gradient(
+    -90deg,             /* Угол градиента — параллельно срезу */
+    rgba(255, 255, 255, 0.15) 0%,  /* Светлый край у границы среза */
+    transparent 40%    /* Полное исчезновение*/
+  );
+
+  /* Делает фон на заднем плане, относительно размещаемых компонентов */
+  /*z-index: -1;*/
+
+  /*Координаты фигуры, для заливки градиентов*/
+  clip-path: polygon(
+    95% 0,
+    30% 30%,
+    30% 0           
+  );
+
+  transition: opacity 0.2s ease;
 }
 .text {
   color: white;
