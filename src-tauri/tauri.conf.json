@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "my-tauri-app",
+  "productName": "Collimator stand-demo",
   "version": "0.1.0",
-  "identifier": "com.vboxuser.my-tauri-app",
+  "identifier": "me.alex.collimator",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
   "app": {
       "windows": [
       {
-        "title": "My App",
+        "title": "Collimator Control System",
         "maximized" : true,
         "decorations": false,
         "transparent": false 
