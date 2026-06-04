@@ -106,29 +106,40 @@ export default function ActuatorWidget({
         <span>Точный режим</span>
 
         {/* Ползунок кратности перемещения */}
+        {/* Ползунок кратности перемещения в стиле iOS */}
         <div className={`${styles.multiplierSlider} ${!isPrecisionModeOn ? styles.disabled : ''}`}>
+          {/* Плавающий фон (индикатор) */}
+          <span className={`
+            ${styles.sliderIndicator} 
+            ${multiplier === 1 ? styles.pos1 : ''}
+            ${multiplier === 10 ? styles.pos2 : ''}
+            ${multiplier === 100 ? styles.pos3 : ''}
+          `}></span>
+
           <button
+            type="button"
             onClick={() => handleMultiplierChange(1)}
-            className={multiplier === 1 ? styles.activeMultiplier : ''}
-            disabled={!isPrecisionModeOn}
+            style={{ color: multiplier === 1 ? '#fff' : 'rgba(255,255,255,0.7)' }}
           >
             x1
           </button>
           <button
+            type="button"
             onClick={() => handleMultiplierChange(10)}
-            className={multiplier === 10 ? styles.activeMultiplier : ''}
-            disabled={!isPrecisionModeOn}
+            style={{ color: multiplier === 10 ? '#fff' : 'rgba(255,255,255,0.7)' }}
           >
             x10
           </button>
           <button
+            type="button"
             onClick={() => handleMultiplierChange(100)}
-            className={multiplier === 100 ? styles.activeMultiplier : ''}
-            disabled={!isPrecisionModeOn}
+            style={{ color: multiplier === 100 ? '#fff' : 'rgba(255,255,255,0.7)' }}
           >
             x100
           </button>
         </div>
+
+
 
         {/* Маховик */}
         <div

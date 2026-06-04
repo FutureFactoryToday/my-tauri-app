@@ -2,35 +2,35 @@ import { useState } from 'react';
 import styles from './App.module.css';
 import './global.css';
 import Shell from './layout/Shell/Shell';
-import DroWidget from './widgets/DroWidget/DroWidget';
+//import DroWidget from './widgets/DroWidget/DroWidget';
 import AchtWidget from './widgets/AchtWidget/AchtWidget';
 import IlluminatorWidget from './widgets/IlluminatorWidget/IlluminatorWidget';
-//import ActuatorWidget from './widgets/ActuatorWidget/ActuatorWidget';
-import ManualOperating from './components/Manuals/ManualOperating';
+import ActuatorWidget from './widgets/ActuatorWidget/ActuatorWidget';
+//import ManualOperating from './components/Manuals/ManualOperating';
 import { useCncServer } from './hooks/useCncServer';
 
 export default function App() {
-  const {isConnected, send, lastMessage } = useCncServer("ws://localhost:8080/ws");
-  const [open, setOpen] = useState(false);
+  const {isConnected, send, /*lastMessage*/ } = useCncServer("ws://localhost:8080/ws");
+  //const [open, setOpen] = useState(false);
 
-  //const [initializationStatus, setInitializationStatus] = useState("Ready");
-  //const [currentMode, setCurrentMode] = useState("Режим 1");
-  //const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
-  //const [currentMultiplier, setCurrentMultiplier] = useState(1);
+  const [initializationStatus, setInitializationStatus] = useState("Ready");
+  const [currentMode, setCurrentMode] = useState("Режим 1");
+  const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
+  const [currentMultiplier, setCurrentMultiplier] = useState(1);
 
   return (
     <Shell>
       <div className={styles.dashboard}>
         {/* Первая плитка открывает окно */}
-        <DroWidget 
+        {/*<DroWidget 
           label={isConnected ? "Open terminal" : "Connecting"}
           onClick={() => {
             console.log("Click Ok!");
             setOpen(true);
             }}
-        />
+        />*/}
 
-        {/*<ActuatorWidget
+        <ActuatorWidget
           label="Actuator Control"
           initializationStatus={initializationStatus}
           currentMode={currentMode}
@@ -82,7 +82,7 @@ export default function App() {
               send(pulseCommand);
             }
           }}
-        />*/}
+        />
 
         
         <AchtWidget 
@@ -137,7 +137,7 @@ export default function App() {
       </div>
 
       {/* Manual control window */}
-      {open && (
+      {/*{open && (
         <ManualOperating 
           onClose={() => setOpen(false)} 
           onSend={(cmd) => {
@@ -151,7 +151,7 @@ export default function App() {
           }} 
           lastResponse={lastMessage}
         />
-      )}
+      )}*/}
 
       <div style={{ color: isConnected ? '#0f0' : '#f00' }}>
         L2 STATUS: {isConnected ? "CONNECTED" : "DISCONNECTED"}
