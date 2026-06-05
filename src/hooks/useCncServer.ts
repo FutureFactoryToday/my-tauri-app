@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 export const useCncServer = (url: string) => {
   const [isConnected, setIsConnected] = useState(false);
+  const [isDeviceConnected, setIsDeviceConnected] = useState(false);
   const [lastMessage, setLastMessage] = useState("");
   const ws = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<number | null>(null);
@@ -24,7 +25,7 @@ export const useCncServer = (url: string) => {
 
     nws.onmessage = (event) => {
       setLastMessage(event.data);
-    }
+    };
 
     nws.onclose = (event: CloseEvent) => {
       setIsConnected(false);
@@ -59,22 +60,32 @@ export const useCncServer = (url: string) => {
   useEffect(() => {
     const socket = new WebSocket(url);
     ws.current = socket;
+
     socket.onopen = () => {
       console.log("L3 Connecting OK");
       setIsConnected(true);
-    }
+    };
     socket.onclose = () => {
       console.log("L3 Connecting Closed");
       setIsConnected(false);
-    }
-    socket.onmessage= (error) => {
-      console.log("L3 Connecting ERROR");
-      setLastMessage(error.data);
-    }
+      setIsDeviceConnected(false);
+    };
+    socket.onmessage = (event) => {
+      const data = event.data.toString();
+
+      if (data === "STATUS:READY") {
+        setIsDeviceConnected(true);
+      } else if (data === "STATUS:NO_DEVICE") {
+        setIsDeviceConnected(false);
+      } else {
+        // Если это обычные данные от станка
+        setLastMessage(data);
+      }
+    };
     return () => {
       socket.close();
     };
-  }, []);
+  }, [url]);
 
   const send = (msg: string) => {
     if (ws.current?.readyState === WebSocket.OPEN) 
@@ -88,5 +99,5 @@ export const useCncServer = (url: string) => {
     }
   };
 
-  return { isConnected, lastMessage, send };
+  return { isConnected, isDeviceConnected, lastMessage, send };
 };

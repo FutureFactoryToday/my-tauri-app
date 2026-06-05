@@ -10,7 +10,7 @@ import ActuatorWidget from './widgets/ActuatorWidget/ActuatorWidget';
 import { useCncServer } from './hooks/useCncServer';
 
 export default function App() {
-  const {isConnected, send, /*lastMessage*/ } = useCncServer("ws://localhost:8080/ws");
+  const {isConnected, isDeviceConnected, send, /*lastMessage*/ } = useCncServer("ws://localhost:8080/ws");
   //const [open, setOpen] = useState(false);
 
   const [initializationStatus, setInitializationStatus] = useState("Ready");
@@ -153,8 +153,15 @@ export default function App() {
         />
       )}*/}
 
-      <div style={{ color: isConnected ? '#0f0' : '#f00' }}>
-        L2 STATUS: {isConnected ? "CONNECTED" : "DISCONNECTED"}
+      {/* Индикаторы статуса внизу страницы */}
+      <div className={styles.statusPanel} style={{ padding: '10px', fontSize: '12px' }}>
+        <div style={{ color: isConnected ? '#0f0' : '#f00' }}>
+          SERVER (L2): {isConnected ? "ONLINE" : "OFFLINE"}
+        </div>
+        
+        <div style={{ color: isDeviceConnected ? '#0f0' : '#f00' }}>
+          DEVICE (L1): {isDeviceConnected ? "CONNECTED" : "NOT FOUND"}
+        </div>
       </div>
 
     </Shell>
