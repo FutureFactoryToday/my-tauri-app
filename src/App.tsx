@@ -154,7 +154,7 @@ export default function App() {
       )}*/}
 
       {/* Индикаторы статуса внизу страницы */}
-      <div className={styles.statusPanel} style={{ padding: '10px', fontSize: '12px' }}>
+      <div className={styles.statusPanel} style={{ padding: '10px', fontSize: '16px', display: 'flex', gap: '30px'}}>
         <div style={{ color: isConnected ? '#0f0' : '#f00' }}>
           SERVER (L2): {isConnected ? "ONLINE" : "OFFLINE"}
         </div>
