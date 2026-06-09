@@ -96,6 +96,12 @@ export default function App() {
             console.log("Fan status:", active);
             // Например: send(active ? "M106" : "M107");
           }}
+          onHeater={(command) => {
+            if (isConnected) send(command);
+          }}
+          onFan={(command) => {            // ← добавляем onFan
+            if (isConnected) send(command); // command будет "led on" или "led off"
+          }}
           onValueSubmit={(value) => {
             console.log("Setting target temp to:", value);
             if(isConnected) {

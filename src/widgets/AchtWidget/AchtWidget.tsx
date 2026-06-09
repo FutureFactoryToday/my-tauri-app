@@ -5,6 +5,8 @@ interface Props {
   label: string;
   onHeatChange?: (active: boolean) => void;
   onFanChange?: (active: boolean) => void;
+  onHeater?: (command: string) => void;
+  onFan?: (command: string) => void;
   onValueSubmit?: (value: number) => void;
   currentTemp?: number;
 }
@@ -14,6 +16,8 @@ export default function AchtWidget({
   onHeatChange, 
   onFanChange, 
   onValueSubmit,
+  onHeater,
+  onFan,
   currentTemp = 0 
 }: Props) {
   const [isHeatOn, setIsHeatOn] = useState(false);
@@ -24,12 +28,18 @@ export default function AchtWidget({
     const newState = !isHeatOn;
     setIsHeatOn(newState);
     if (onHeatChange) onHeatChange(newState);
+    if (onHeater) {
+      onHeater(newState ? "led blink" : "led off");
+    }
   };
 
   const handleFanToggle = () => {
     const newState = !isFanOn;
     setIsFanOn(newState);
     if (onFanChange) onFanChange(newState);
+    if (onFan) {
+      onFan(newState ? "led on" : "led off");
+    }
   };
 
   const handleSubmit = () => {
