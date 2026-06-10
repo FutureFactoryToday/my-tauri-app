@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './AchtWidget.module.css';
+import Iswitch from '../../components/Iswitch/Iswitch';
 
 interface Props {
   label: string;
@@ -56,22 +57,12 @@ export default function AchtWidget({
       {/* 1. Переключатели (iOS Style) */}
       <div className={styles.controlsGroup}>
         <div className={styles.switchRow}>
-          <div 
-            className={`${styles.iosSwitch} ${isHeatOn ? styles.on : ''}`} 
-            onClick={handleHeatToggle}
-          >
-            <div className={styles.handle} />
-          </div>
+          <Iswitch checked={isHeatOn} onChange={handleHeatToggle} />  
           <span>Heater</span>
         </div>
 
         <div className={styles.switchRow}>
-          <div 
-            className={`${styles.iosSwitch} ${isFanOn ? styles.on : ''}`} 
-            onClick={handleFanToggle}
-          >
-            <div className={styles.handle} />
-          </div>
+          <Iswitch checked={isFanOn} onChange={handleFanToggle} />  
           <span>Fan</span>
         </div>
       </div>

@@ -62,7 +62,7 @@
   letter-spacing: 1px;
 }
 
-/* iOS Switch Styles */
+/* switchRow Styles */
 .switchRow {
   display: flex;
   justify-content: space-between;
@@ -70,41 +70,11 @@
   margin-bottom: 10px;
 }
 
-.iosSwitch {
-  width: 46px;
-  height: 26px;
-  background-color: #39393d;
-  border-radius: 13px;
-  position: relative;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.iosSwitch.on {
-  background-color: #1c77bd;
-}
-
-.handle {
-  width: 22px;
-  height: 22px;
-  background-color: white;
-  border-radius: 50%;
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.iosSwitch.on .handle {
-  transform: translateX(20px);
-}
-
 /* Temperature Display */
 .tempDisplay {
   background: #252525;
   padding: 10px;
-  border-radius: 8px;
+  border-radius: 1px;
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -124,7 +94,7 @@
 /* Input Group*/
 .inputGroup {
   display: flex;
-  gap: 30px;
+  gap: 8px;
   transition: opacity 0.3s ease;
 }
 
@@ -139,9 +109,9 @@
   border: 1px solid #444;
   color: black;
   padding: 8px;
-  border-radius: 6px;
+  border-radius: 1px;
   outline: none;
-  width: 60px;
+  width: 80px;
 }
 
 .submitBtn {
@@ -149,7 +119,7 @@
   color: white;
   border: none;
   padding: 8px 12px;
-  border-radius: 6px;
+  border-radius: 1px;
   cursor: pointer;
   font-family: 'Arial';
   font-size: 0.8rem;

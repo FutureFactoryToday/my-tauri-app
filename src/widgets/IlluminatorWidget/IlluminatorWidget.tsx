@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './IlluminatorWidget.module.css';
+import Iswitch from '../../components/Iswitch/Iswitch';
 
 interface Props {
   label: string;
@@ -32,9 +33,7 @@ export default function IlluminatorWidget({ label, onVisibleChange, on800nmChang
       <div className={styles.rowWrapper}>
         <span className={styles.rowLabel}>White</span>
         <div className={styles.illuminatorRow}>
-          <div className={`${styles.iosSwitch} ${visOn ? styles.on : ''}`} onClick={() => setVisOn(!visOn)}>
-            <div className={styles.handle} />
-          </div>
+          <Iswitch checked={visOn} onChange={setVisOn} />
           <div className={`${styles.inputGroup} ${!visOn ? styles.disabled : ''}`}>
             <input 
               type="text" value={visVal} className={styles.input}
@@ -50,9 +49,7 @@ export default function IlluminatorWidget({ label, onVisibleChange, on800nmChang
       <div className={styles.rowWrapper}>
         <span className={styles.rowLabel}>800nm</span>
         <div className={styles.illuminatorRow}>
-          <div className={`${styles.iosSwitch} ${irOn ? styles.on : ''}`} onClick={() => setIrOn(!irOn)}>
-            <div className={styles.handle} />
-          </div>
+          <Iswitch checked={irOn} onChange={setIrOn} />
           <div className={`${styles.inputGroup} ${!irOn ? styles.disabled : ''}`}>
             <input 
               type="text" value={irVal} className={styles.input}
@@ -68,9 +65,7 @@ export default function IlluminatorWidget({ label, onVisibleChange, on800nmChang
       <div className={styles.rowWrapper}>
         <span className={styles.rowLabel}>365nm</span>
         <div className={styles.illuminatorRow}>
-          <div className={`${styles.iosSwitch} ${uvOn ? styles.on : ''}`} onClick={() => setUvOn(!uvOn)}>
-            <div className={styles.handle} />
-          </div>
+          <Iswitch checked={uvOn} onChange={setUvOn} />
           <div className={`${styles.inputGroup} ${!uvOn ? styles.disabled : ''}`}>
             <input 
               type="text" value={uvVal} className={styles.input}

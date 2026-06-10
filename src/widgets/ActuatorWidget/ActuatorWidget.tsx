@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import styles from './ActuatorWidget.module.css';
+import Iswitch from '../../components/Iswitch/Iswitch';
 
 interface Props {
   label: string;
@@ -97,12 +98,7 @@ export default function ActuatorWidget({
       {/* 3. Панель точного управления */}
       <div className={styles.panel}>
         {/* Переключатель режима точного управления */}
-        <div
-          className={`${styles.iosSwitch} ${isPrecisionModeOn ? styles.on : ''}`}
-          onClick={handlePrecisionModeToggle}
-        >
-          <div className={styles.handle} />
-        </div>
+        <Iswitch checked={isPrecisionModeOn} onChange={handlePrecisionModeToggle} />  
         <span>Точный режим</span>
 
         {/* Ползунок кратности перемещения */}
