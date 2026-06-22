@@ -39,7 +39,7 @@ export default function AchtWidget({
     setIsFanOn(newState);
     if (onFanChange) onFanChange(newState);
     if (onFan) {
-      onFan(newState ? "led on" : "led off");
+      onFan(newState ? "fan on" : "fan off");
     }
   };
 
