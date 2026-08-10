@@ -11,12 +11,13 @@
   },
   "app": {
       "windows": [
-      {
-        "title": "Collimator Control System",
-        "maximized" : true,
-        "decorations": false,
-        "transparent": false 
-      }
+  {
+    "title": "Collimator Control System",
+    "decorations": true,
+    "transparent": false,
+    "width": 1080,
+    "height": 1920
+  }
     ],
     "security": {
       "csp": null
