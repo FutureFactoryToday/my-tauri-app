@@ -25,12 +25,20 @@ export default function AchtWidget({
   const [isFanOn, setIsFanOn] = useState(false);
   const [inputValue, setInputValue] = useState("0");
 
+  const getValidHeatValue = () => {
+    let num = parseFloat(inputValue);
+    if (isNaN(num) || num < 0.1) {
+      return 0.1;
+    }
+    return num;
+  };
+
   const handleHeatToggle = () => {
     const newState = !isHeatOn;
     setIsHeatOn(newState);
     if (onHeatChange) onHeatChange(newState);
     if (onHeater) {
-      onHeater(newState ? "led blink" : "led off");
+      onHeater(newState ? "heat on" : "heat off");
     }
   };
 
@@ -44,9 +52,14 @@ export default function AchtWidget({
   };
 
   const handleSubmit = () => {
-    const val = parseFloat(inputValue);
-    if (!isNaN(val) && onValueSubmit) {
-      onValueSubmit(val);
+    const validNum = getValidHeatValue();
+    
+    // Принудительно форматируем текст в инпуте до "5.0", чтобы UI выглядел красиво
+    setInputValue(validNum.toFixed(1));
+
+    // Отправляем числовое значение родителю (для G-кода M104)
+    if (onValueSubmit) {
+      onValueSubmit(validNum);
     }
   };
 
@@ -75,16 +88,44 @@ export default function AchtWidget({
 
       {/* 3. Поле ввода и кнопка (Горизонтально) */}
       <div className={`${styles.inputGroup} ${!isHeatOn ? styles.disabled : ''}`}>
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={inputValue}
-            onChange={(e) => {
-                // Добавляем простую проверку: разрешаем только цифры и точку
-                const val = e.target.value;
-                if (val === '' || /^[0-9.]*$/.test(val)) {
-                setInputValue(val);
-                }
-            }}
+          onChange={(e) => {
+            const val = e.target.value;
+
+            // 1. Разрешаем полностью очистить поле
+            if (val === '') {
+              setInputValue(val);
+              return;
+            }
+
+            // 2. Проверяем формат: только цифры, максимум одна точка и не более 1 знака после нее (шаг 0.1)
+            if (!/^[0-9]*\.?[0-9]?$/.test(val)) {
+              return; // Блокируем ввод, если знаков после точки больше одного или формат неверный
+            }
+
+            // 3. Проверяем диапазон, если это уже полноценное число
+            const num = parseFloat(val);
+            if (!isNaN(num)) {
+              if (num > 10) return; // Блокируем, если число стало больше 10
+              
+              // Особый случай для нуля: не разрешаем вводить "0" два раза подряд (например, "00")
+              if (val.startsWith('0') && val.length > 1 && val[1] !== '.') {
+                return;
+              }
+            }
+
+            // Если все проверки пройдены — обновляем стейт
+            setInputValue(val);
+          }}
+          // onBlur нужен только для того, чтобы подтянуть до 0.1, если пользователь оставил "0" или "0."
+          onBlur={(e) => {
+            const num = parseFloat(e.target.value);
+            if (isNaN(num) || num < 0.1) {
+              setInputValue('0.1');
+            }
+          }}
           disabled={!isHeatOn}
           className={styles.input}
           placeholder="0.0"

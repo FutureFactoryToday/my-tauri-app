@@ -105,7 +105,7 @@ export default function App() {
           onValueSubmit={(value) => {
             console.log("Setting target temp to:", value);
             if(isConnected) {
-              send(`M104 S${value}`); // Отправка G-кода в станок
+              send(`heat ${value.toFixed(1)}`); // Отправка G-кода в станок
             }
           }}
         />
