@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './App.module.css';
 import './global.css';
 import Shell from './layout/Shell/Shell';
@@ -10,13 +10,47 @@ import ActuatorWidget from './widgets/ActuatorWidget/ActuatorWidget';
 import { useCncServer } from './hooks/useCncServer';
 
 export default function App() {
-  const {isConnected, isDeviceConnected, send, /*lastMessage*/ } = useCncServer("ws://localhost:8080/ws");
+  const {isConnected, isDeviceConnected, send, lastMessage } = useCncServer("ws://localhost:8080/ws");
   //const [open, setOpen] = useState(false);
+
+  const [currentTemp, setCurrentTemp] = useState(24.5);
 
   const [initializationStatus, setInitializationStatus] = useState("Ready");
   const [currentMode, setCurrentMode] = useState("Режим 1");
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
   const [currentMultiplier, setCurrentMultiplier] = useState(1);
+
+  // Обработка входящих сообщений для обновления температуры
+  useEffect(() => {
+    if (!lastMessage) return;
+    
+    console.log('Received from server:', lastMessage);
+    
+    // Проверяем разные форматы сообщений с температурой
+    // Формат 1: "heat is 24.5"
+    if (lastMessage.startsWith('Heat is')) {
+      const tempValue = parseFloat(lastMessage.replace('Heat is ', '').trim());
+      if (!isNaN(tempValue)) {
+        setCurrentTemp(tempValue);
+        console.log('Temperature updated to:', tempValue);
+      }
+    }
+  }, [lastMessage]);
+
+  // Периодический опрос температуры
+  useEffect(() => {
+    if (!isConnected) return;
+    
+    // Запрашиваем температуру сразу после подключения
+    //send("heat current");
+    
+    // И затем каждые 5 секунд
+    const interval = setInterval(() => {
+      send("heat current");
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [isConnected, send]);
 
   return (
     <Shell>
@@ -87,7 +121,7 @@ export default function App() {
         
         <AchtWidget 
           label="ACHT Control"
-          currentTemp={24.5} // Здесь можно передать переменную из сокета
+          currentTemp={currentTemp} // Здесь можно передать переменную из сокета
           onHeatChange={(active) => {
             console.log("Heater status:", active);
             // Например: send(active ? "HEATER_ON" : "HEATER_OFF");
@@ -98,14 +132,18 @@ export default function App() {
           }}
           onHeater={(command) => {
             if (isConnected) send(command);
+              if (command === "heat on" || command === "heat off") {
+                setTimeout(() => send("heat current"), 100);
+              }
           }}
-          onFan={(command) => {            // ← добавляем onFan
+          onFan={(command) => {            // добавляем onFan
             if (isConnected) send(command); // command будет "led on" или "led off"
           }}
           onValueSubmit={(value) => {
             console.log("Setting target temp to:", value);
             if(isConnected) {
-              send(`heat ${value.toFixed(1)}`); // Отправка G-кода в станок
+              send(`heat ${value.toFixed(1)}`); // Отправляем команду на изменение дельты температуры
+              setTimeout(() => send("heat current"), 200);
             }
           }}
         />
