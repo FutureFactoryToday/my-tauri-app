@@ -29,8 +29,9 @@ export default function App() {
     // Проверяем разные форматы сообщений с температурой
     // Формат 1: "heat is 24.5"
     if (lastMessage.startsWith('Heat is')) {
-      const tempValue = parseFloat(lastMessage.replace('Heat is ', '').trim());
-      if (!isNaN(tempValue)) {
+      const rawValue  = parseFloat(lastMessage.replace('Heat is ', '').trim());
+      if (!isNaN(rawValue )) {
+        const tempValue = rawValue / 10;  // Делим на 10
         setCurrentTemp(tempValue);
         console.log('Temperature updated to:', tempValue);
       }
@@ -47,7 +48,7 @@ export default function App() {
     // И затем каждые 5 секунд
     const interval = setInterval(() => {
       send("heat current");
-    }, 5000);
+    }, 1000);
     
     return () => clearInterval(interval);
   }, [isConnected, send]);

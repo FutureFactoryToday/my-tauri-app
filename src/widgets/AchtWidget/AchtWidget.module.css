@@ -75,19 +75,27 @@
   background: #252525;
   padding: 10px;
   border-radius: 1px;
-  text-align: center;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100px;
+}
+
+.tempGroup {
+  display: flex;
+  flex-direction: column;     /* Горизонтально */
+  align-items: left;     /* Вертикальное выравнивание */
+  gap: 5px;               /* Отступ между элементами */
 }
 
 .tempValue {
-  font-size: 1.5rem;
+  font-size: 2.5rem;
   font-weight: bold;
   color: #00ff00;
 }
 
 .tempLabel {
-  font-size: 0.7rem;
+  font-size: 1.7rem;
   color: #666;
 }
 

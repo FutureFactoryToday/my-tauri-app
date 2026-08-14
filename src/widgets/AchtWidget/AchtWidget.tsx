@@ -82,8 +82,10 @@ export default function AchtWidget({
 
       {/* 2. Текущая температура */}
       <div className={styles.tempDisplay}>
-        <span className={styles.tempValue}>{currentTemp.toFixed(1)}°C</span>
-        <span className={styles.tempLabel}>Current Temp</span>
+        <div className={styles.tempGroup}>
+          <span className={styles.tempValue}>{currentTemp.toFixed(1)}°C</span>
+          <span className={styles.tempLabel}>Current Temp</span>
+        </div>
       </div>
 
       {/* 3. Поле ввода и кнопка (Горизонтально) */}
