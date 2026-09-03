@@ -48,7 +48,7 @@ export default function App() {
     // И затем каждые 5 секунд
     const interval = setInterval(() => {
       send("heat current");
-    }, 1000);
+    }, 5000);
     
     return () => clearInterval(interval);
   }, [isConnected, send]);
