@@ -82,7 +82,7 @@ export default function ActuatorWidget({
           disabled={!isReady}
           className={styles.modeSelect}
         >
-          <option value="Режим 1">MODE 1</option>
+          <option value="Режим 1">ZERO</option>
           <option value="Режим 2">MODE 2</option>
           <option value="Режим 3">MODE 3</option>
         </select>

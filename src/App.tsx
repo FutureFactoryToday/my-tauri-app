@@ -85,7 +85,7 @@ export default function App() {
             if (isConnected) {
               switch (mode) {
                 case "Режим 1":
-                  send("G0 X10 Y10"); // Быстрое перемещение в позицию 1
+                  send("amove zero"); // Быстрое перемещение в позицию 1
                   break;
                 case "Режим 2":
                   send("G0 X50 Y50"); // Быстрое перемещение в позицию 2
