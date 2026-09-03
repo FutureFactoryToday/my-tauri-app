@@ -6,6 +6,7 @@ interface Props {
   label: string;
   onHomeClick?: () => void;
   onModeChange?: (mode: string) => void;
+  onPosChange?: (mode: string) => void;
   onPrecisionModeToggle?: (active: boolean) => void;
   onMultiplierChange?: (multiplier: number) => void;
   onPulse?: () => void;
@@ -17,10 +18,11 @@ export default function ActuatorWidget({
   label,
   onHomeClick,
   onModeChange,
+  onPosChange,
   onPrecisionModeToggle,
   onMultiplierChange,
   onPulse,
-  initializationStatus = 'Ready',
+  initializationStatus = 'Готов',
   currentMode = 'Режим 1'
 }: Props) {
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
@@ -50,7 +52,16 @@ export default function ActuatorWidget({
     if (onPulse) onPulse();
   };
 
-  const isReady = initializationStatus === 'Ready';
+  const isReady = initializationStatus === 'Готов';
+
+  const moveSteps = [
+    { label: "- 0,1 мм", value: "-0.1" },
+    { label: "- 1 мм", value: "-1" },
+    { label: "- 10 мм", value: "-10" },
+    { label: "+ 10 мм", value: "+10" },
+    { label: "+ 1 мм", value: "+1" },
+    { label: "+ 0,1 мм", value: "+0.1" },
+  ];
 
   return (
     <div className={styles.tile}>
@@ -63,7 +74,7 @@ export default function ActuatorWidget({
           onClick={handleHomeClick}
           className={styles.homeBtn}
           >
-          HOME
+          ДОМОЙ
           </button>
           <span className={styles.statusLabel}>Статус инициализации:</span>
           <span
@@ -74,7 +85,7 @@ export default function ActuatorWidget({
         </div>
       </div>
 
-      {/* 2. Панель управления положением */}
+      {/* 2. Панель выбора положения */}
       <div className={styles.panel}>
         <select
           value={currentMode}
@@ -82,7 +93,7 @@ export default function ActuatorWidget({
           disabled={!isReady}
           className={styles.modeSelect}
         >
-          <option value="Режим 1">ZERO</option>
+          <option value="Режим 1">НУЛЕВОЕ ПОЛОЖЕНИЕ</option>
           <option value="Режим 2">MODE 2</option>
           <option value="Режим 3">MODE 3</option>
         </select>
@@ -91,15 +102,29 @@ export default function ActuatorWidget({
           disabled={!isReady}
           className={styles.goBtn}
         >
-          GOTO
+          ВЫПОЛНИТЬ
         </button>
       </div>
 
-      {/* 3. Панель точного управления */}
+      {/* 3. Панель управления положением */}
+      <div className={styles.panelPos}>
+        {moveSteps.map((step) => (
+          <button
+            key={step.value}
+            onClick={() => onPosChange?.(step.value)}
+            disabled={!isReady}
+            className={styles.goBtn}
+          >
+            {step.label}
+          </button>
+        ))}
+      </div>
+
+      {/* 4. Панель точного управления */}
       <div className={styles.panel}>
         {/* Переключатель режима точного управления */}
         <Iswitch checked={isPrecisionModeOn} onChange={handlePrecisionModeToggle} />  
-        <span>Точный режим</span>
+        <span>ТОЧНЫЙ РЕЖИМ</span>
 
         {/* Ползунок кратности перемещения */}
         {/* Ползунок кратности перемещения в стиле iOS */}

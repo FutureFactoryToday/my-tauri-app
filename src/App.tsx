@@ -15,7 +15,7 @@ export default function App() {
 
   const [currentTemp, setCurrentTemp] = useState(24.5);
 
-  const [initializationStatus, setInitializationStatus] = useState("Ready");
+  const [initializationStatus, setInitializationStatus] = useState("Готов");
   const [currentMode, setCurrentMode] = useState("Режим 1");
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
   const [currentMultiplier, setCurrentMultiplier] = useState(1);
@@ -66,7 +66,7 @@ export default function App() {
         />*/}
 
         <ActuatorWidget
-          label="Actuator Control"
+          label="Актуатор"
           initializationStatus={initializationStatus}
           currentMode={currentMode}
           onHomeClick={() => {
@@ -74,7 +74,7 @@ export default function App() {
             if (isConnected) {
               send("G28"); // Команда "Домой" для ЧПУ
               // Обновляем статус инициализации после отправки команды
-              setInitializationStatus("Initializing...");
+              setInitializationStatus("Инициализация...");
               // Здесь можно добавить логику ожидания ответа от станка
               // и установки статуса "Ready"
             }
@@ -96,6 +96,13 @@ export default function App() {
                 default:
                   break;
               }
+            }
+          }}
+          onPosChange={(value) => {
+            console.log("Move by:", value);
+            if (isConnected) {
+              const cleanValue = value.replace('+', ''); // убираем знак +
+              send(`imove ${cleanValue}`);
             }
           }}
           onPrecisionModeToggle={(active) => {
