@@ -4,20 +4,39 @@
   opacity: var(--opacity);
   border: 1px solid #333;
   padding: 30px;
+  position: relative;
   color: white;
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 20px;
   min-width: 300px;
+  max-height: 300px; 
   transition: all 0.2s ease;
 
   /* Добавляем эффект среза */
   position: relative;
   overflow: hidden; /* Скрываем лишнее */
+
+  /* Добавление эффекта раскрывания при наведении #commit-04_09_2026 */
+  flex: 1 1 0;           /* равномерно заполняют высоту изначально */
+  min-height: 0;         /* позволяют сжиматься до нуля при необходимости */
+  overflow: hidden;      /* чтобы содержимое не вылезало за границы, пока виджет сжат */
+  transition: flex 0.3s ease;  /* плавное изменение размера */
 }
 
-.tile:hover { 
+.tile:not(.keyboardOpen):hover,
+.tile:not(.keyboardOpen):focus {
   opacity: 1;
+  max-height: 300px;
+  flex: 0 0 300px;
+  overflow: visible;
+}
+.tile.keyboardOpen:hover {
+  height: auto;
+  overflow: hidden;
+  opacity: var(--opacity);
+  /* возвращаем стандартное поведение flex, если нужно */
+  flex: 1 1 0;
 }
 
 .tile::before {

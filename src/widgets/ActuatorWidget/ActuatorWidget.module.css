@@ -9,15 +9,32 @@
   flex-direction: column;
   gap: 20px;
   min-width: 300px;
+  max-height: 350px; 
   transition: all 0.2s ease;
 
   /* Добавляем эффект среза */
   position: relative;
   overflow: hidden; /* Скрываем лишнее */
+
+  /* Добавление эффекта раскрывания при наведении #commit-04_09_2026 */
+  flex: 1 1 0;           /* равномерно заполняют высоту изначально */
+  min-height: 0;         /* позволяют сжиматься до нуля при необходимости */
+  overflow: hidden;      /* чтобы содержимое не вылезало за границы, пока виджет сжат */
+  transition: flex 0.3s ease;  /* плавное изменение размера */
 }
 
-.tile:hover { 
+.tile:not(.keyboardOpen):hover {
   opacity: 1;
+  flex: 0 0 350px;        /* фиксируем высоту через flex-basis */
+  overflow: visible;
+}
+
+.tile.keyboardOpen:hover {
+  height: auto;
+  overflow: hidden;
+  opacity: var(--opacity);
+  /* возвращаем стандартное поведение flex, если нужно */
+  flex: 1 1 0;
 }
 
 .tile::before {
