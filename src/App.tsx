@@ -99,7 +99,7 @@ export default function App() {
           }}
           onPosChange={(value) => {
             console.log("Move by:", value);
-            if (isConnected) {
+            if (isPrecisionModeOn && isConnected) {
               const cleanValue = value.replace('+', ''); // убираем знак +
               send(`imove ${cleanValue}`);
             }
