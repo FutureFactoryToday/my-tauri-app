@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import styles from './ActuatorWidget.module.css';
 import Iswitch from '../../components/Iswitch/Iswitch';
 
@@ -8,12 +8,9 @@ interface Props {
   onModeChange?: (mode: string) => void;
   onPosChange?: (mode: string) => void;
   onPrecisionModeToggle?: (active: boolean) => void;
-  onMultiplierChange?: (multiplier: number) => void;
   onPulse?: () => void;
   initializationStatus?: string;
   currentMode?: string;
-  onForwardHold?: (step: number) => void;   // при удержании «вперёд»
-  onBackwardHold?: (step: number) => void;  // при удержании «назад»
 }
 
 export default function ActuatorWidget({
@@ -22,50 +19,15 @@ export default function ActuatorWidget({
   onModeChange,
   onPosChange,
   onPrecisionModeToggle,
-  onMultiplierChange,
-  onPulse,
-  onForwardHold,
-  onBackwardHold,
   initializationStatus = 'Готов',
   currentMode = 'Режим 1'
 }: Props) {
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
-  const holdIntervalRef = useRef<number | null>(null);
-
     const handleHomeClick = () => {
       if (onHomeClick) onHomeClick();
-    };
-
-    // --- Управление удержанием ---
-    const startHold = (direction: 'forward' | 'backward') => {
-    if (holdIntervalRef.current) return; // уже идёт удержание
-    const step = direction === 'forward' ? 0.1 : -0.1;
-    // Сразу вызываем один раз
-    if (direction === 'forward') {
-      onForwardHold?.(step);
-    } else {
-      onBackwardHold?.(step);
-    }
-    // Затем каждые 100 мс
-    holdIntervalRef.current = window.setInterval(() => {
-      if (direction === 'forward') {
-        onForwardHold?.(step);
-      } else {
-        onBackwardHold?.(step);
-      }
-    }, 100);
   };
 
-  const stopHold = () => {
-    if (holdIntervalRef.current) {
-      clearInterval(holdIntervalRef.current);
-      holdIntervalRef.current = null;
-    }
-  };
-
-  useEffect(() => {
-  return () => stopHold();
-  }, []);
+  const isMovingRef = useRef(false);
 
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const mode = e.target.value;
@@ -76,10 +38,6 @@ export default function ActuatorWidget({
     const newState = !isPrecisionModeOn;
     setIsPrecisionModeOn(newState);
     if (onPrecisionModeToggle) onPrecisionModeToggle(newState);
-  };
-
-  const handlePulse = () => {
-    if (onPulse) onPulse();
   };
 
   const isReady = initializationStatus === 'Готов';
@@ -156,25 +114,87 @@ export default function ActuatorWidget({
         <span>ПЛАВНЫЙ РЕЖИМ</span>
 
         <button
-          onMouseDown={() => startHold('backward')}
-          onMouseUp={stopHold}
-          onMouseLeave={stopHold}
-          onTouchStart={() => startHold('backward')}
-          onTouchEnd={stopHold}
-          onTouchCancel={stopHold}
+          onMouseDown={() => {
+            if (!isMovingRef.current) {
+              isMovingRef.current = true;
+              onPosChange?.("-500");
+            }
+          }}
+          onMouseUp={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
+          onMouseLeave={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
+          onTouchStart={() => {
+            if (!isMovingRef.current) {
+              isMovingRef.current = true;
+              onPosChange?.("-500");
+            }
+          }}
+          onTouchEnd={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
+          onTouchCancel={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
           className={styles.homeBtn}
+          disabled={!isReady}
         >
           &lt;&lt;
         </button>
 
         <button
-          onMouseDown={() => startHold('forward')}
-          onMouseUp={stopHold}
-          onMouseLeave={stopHold}
-          onTouchStart={() => startHold('forward')}
-          onTouchEnd={stopHold}
-          onTouchCancel={stopHold}
+          onMouseDown={() => {
+            if (!isMovingRef.current) {
+              isMovingRef.current = true;
+              onPosChange?.("+500");
+            }
+          }}
+          onMouseUp={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
+          onMouseLeave={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
+          onTouchStart={() => {
+            if (!isMovingRef.current) {
+              isMovingRef.current = true;
+              onPosChange?.("+500");
+            }
+          }}
+          onTouchEnd={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
+          onTouchCancel={() => {
+            if (isMovingRef.current) {
+              isMovingRef.current = false;
+              onPosChange?.("0");
+            }
+          }}
           className={styles.homeBtn}
+          disabled={!isReady}
         >
           &gt;&gt;
         </button>

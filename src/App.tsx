@@ -18,7 +18,6 @@ export default function App() {
   const [initializationStatus, setInitializationStatus] = useState("Готов");
   const [currentMode, setCurrentMode] = useState("Режим 1");
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
-  const [currentMultiplier, setCurrentMultiplier] = useState(1);
 
   // Обработка входящих сообщений для обновления температуры
   useEffect(() => {
@@ -108,34 +107,8 @@ export default function App() {
           onPrecisionModeToggle={(active) => {
             console.log("Precision mode:", active ? "ON" : "OFF");
             setIsPrecisionModeOn(active);
-            if (isConnected) {
+            if (isPrecisionModeOn && isConnected) {
               send(active ? "M108" : "M109"); // Команды для точного режима
-            }
-          }}
-          onMultiplierChange={(multiplier) => {
-            console.log("Multiplier set to:", multiplier);
-            setCurrentMultiplier(multiplier);
-          }}
-          onPulse={() => {
-            console.log("Pulse generated");
-            if (isConnected && isPrecisionModeOn) {
-              // Отправка импульса с учётом текущей кратности
-              const pulseCommand = `G0 X${currentMultiplier}`;
-              send(pulseCommand);
-            }
-          }}
-          onForwardHold={(step) => {
-            console.log(`Удержание вперёд: ${step}`);
-            if (isPrecisionModeOn && isConnected) {
-              // step = 0.1 – отправляем команду на увеличение
-              send(`imove +${step}`);
-            }
-          }}
-          onBackwardHold={(step) => {
-            console.log(`Удержание назад: ${step}`);
-            if (isPrecisionModeOn && isConnected) {
-              // step = -0.1 – отправляем команду на уменьшение
-              send(`imove ${step}`);
             }
           }}
         />
