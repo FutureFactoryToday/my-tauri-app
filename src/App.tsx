@@ -124,11 +124,25 @@ export default function App() {
               send(pulseCommand);
             }
           }}
+          onForwardHold={(step) => {
+            console.log(`Удержание вперёд: ${step}`);
+            if (isPrecisionModeOn && isConnected) {
+              // step = 0.1 – отправляем команду на увеличение
+              send(`imove +${step}`);
+            }
+          }}
+          onBackwardHold={(step) => {
+            console.log(`Удержание назад: ${step}`);
+            if (isPrecisionModeOn && isConnected) {
+              // step = -0.1 – отправляем команду на уменьшение
+              send(`imove ${step}`);
+            }
+          }}
         />
 
         
         <AchtWidget 
-          label="ACHT Control"
+          label="АЧТ"
           currentTemp={currentTemp} // Здесь можно передать переменную из сокета
           onHeatChange={(active) => {
             console.log("Heater status:", active);
@@ -157,7 +171,7 @@ export default function App() {
         />
 
         <IlluminatorWidget 
-          label="Illumination"
+          label="Осветитель"
           onVisibleChange={(active, power) => {
             console.log("White Light:", active, "Power:", power);
             if(isConnected) {

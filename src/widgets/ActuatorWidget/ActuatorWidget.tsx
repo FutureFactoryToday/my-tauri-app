@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import styles from './ActuatorWidget.module.css';
 import Iswitch from '../../components/Iswitch/Iswitch';
 
@@ -12,6 +12,8 @@ interface Props {
   onPulse?: () => void;
   initializationStatus?: string;
   currentMode?: string;
+  onForwardHold?: (step: number) => void;   // при удержании «вперёд»
+  onBackwardHold?: (step: number) => void;  // при удержании «назад»
 }
 
 export default function ActuatorWidget({
@@ -22,15 +24,48 @@ export default function ActuatorWidget({
   onPrecisionModeToggle,
   onMultiplierChange,
   onPulse,
+  onForwardHold,
+  onBackwardHold,
   initializationStatus = 'Готов',
   currentMode = 'Режим 1'
 }: Props) {
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
-  const [multiplier, setMultiplier] = useState(1);
+  const holdIntervalRef = useRef<number | null>(null);
 
-  const handleHomeClick = () => {
-    if (onHomeClick) onHomeClick();
+    const handleHomeClick = () => {
+      if (onHomeClick) onHomeClick();
+    };
+
+    // --- Управление удержанием ---
+    const startHold = (direction: 'forward' | 'backward') => {
+    if (holdIntervalRef.current) return; // уже идёт удержание
+    const step = direction === 'forward' ? 0.1 : -0.1;
+    // Сразу вызываем один раз
+    if (direction === 'forward') {
+      onForwardHold?.(step);
+    } else {
+      onBackwardHold?.(step);
+    }
+    // Затем каждые 100 мс
+    holdIntervalRef.current = window.setInterval(() => {
+      if (direction === 'forward') {
+        onForwardHold?.(step);
+      } else {
+        onBackwardHold?.(step);
+      }
+    }, 100);
   };
+
+  const stopHold = () => {
+    if (holdIntervalRef.current) {
+      clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+  return () => stopHold();
+  }, []);
 
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const mode = e.target.value;
@@ -41,11 +76,6 @@ export default function ActuatorWidget({
     const newState = !isPrecisionModeOn;
     setIsPrecisionModeOn(newState);
     if (onPrecisionModeToggle) onPrecisionModeToggle(newState);
-  };
-
-  const handleMultiplierChange = (newMultiplier: number) => {
-    setMultiplier(newMultiplier);
-    if (onMultiplierChange) onMultiplierChange(newMultiplier);
   };
 
   const handlePulse = () => {
@@ -120,58 +150,34 @@ export default function ActuatorWidget({
         ))}
       </div>
 
-      {/* 4. Панель точного управления */}
+      {/* 4. Панель плавного управления */}
       <div className={styles.panel}>
-        {/* Переключатель режима точного управления */}
-        <Iswitch checked={isPrecisionModeOn} onChange={handlePrecisionModeToggle} />  
-        <span>ТОЧНЫЙ РЕЖИМ</span>
+        <Iswitch checked={isPrecisionModeOn} onChange={handlePrecisionModeToggle} />
+        <span>ПЛАВНЫЙ РЕЖИМ</span>
 
-        {/* Ползунок кратности перемещения */}
-        {/* Ползунок кратности перемещения в стиле iOS */}
-        <div className={`${styles.multiplierSlider} ${!isPrecisionModeOn ? styles.disabled : ''}`}>
-          {/* Плавающий фон (индикатор) */}
-          <span className={`
-            ${styles.sliderIndicator} 
-            ${multiplier === 1 ? styles.pos1 : ''}
-            ${multiplier === 10 ? styles.pos2 : ''}
-            ${multiplier === 100 ? styles.pos3 : ''}
-          `}></span>
-
-          <button
-            type="button"
-            onClick={() => handleMultiplierChange(1)}
-            style={{ color: multiplier === 1 ? '#fff' : 'rgba(255,255,255,0.7)' }}
-          >
-            x1
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMultiplierChange(10)}
-            style={{ color: multiplier === 10 ? '#fff' : 'rgba(255,255,255,0.7)' }}
-          >
-            x10
-          </button>
-          <button
-            type="button"
-            onClick={() => handleMultiplierChange(100)}
-            style={{ color: multiplier === 100 ? '#fff' : 'rgba(255,255,255,0.7)' }}
-          >
-            x100
-          </button>
-        </div>
-
-
-
-        {/* Маховик */}
-        <div
-          className={`${styles.handwheel} ${!isPrecisionModeOn ? styles.disabled : ''}`}
-          onMouseDown={handlePulse}
-          onTouchStart={handlePulse}
+        <button
+          onMouseDown={() => startHold('backward')}
+          onMouseUp={stopHold}
+          onMouseLeave={stopHold}
+          onTouchStart={() => startHold('backward')}
+          onTouchEnd={stopHold}
+          onTouchCancel={stopHold}
+          className={styles.homeBtn}
         >
-          <div className={styles.handwheelInner}>
-            <div className={styles.cursorSpot} />
-          </div>
-        </div>
+          &lt;&lt;
+        </button>
+
+        <button
+          onMouseDown={() => startHold('forward')}
+          onMouseUp={stopHold}
+          onMouseLeave={stopHold}
+          onTouchStart={() => startHold('forward')}
+          onTouchEnd={stopHold}
+          onTouchCancel={stopHold}
+          className={styles.homeBtn}
+        >
+          &gt;&gt;
+        </button>
       </div>
     </div>
   );

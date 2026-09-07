@@ -174,11 +174,11 @@ export default function AchtWidget({
       <div className={styles.controlsGroup}>
         <div className={styles.switchRow}>
           <Iswitch checked={isHeatOn} onChange={handleHeatToggle} />
-          <span>Heater</span>
+          <span>Нагреватель</span>
         </div>
         <div className={styles.switchRow}>
           <Iswitch checked={isFanOn} onChange={handleFanToggle} />
-          <span>Fan</span>
+          <span>Вентилятор</span>
         </div>
       </div>
 
@@ -215,7 +215,7 @@ export default function AchtWidget({
           disabled={!isHeatOn}
           className={styles.submitBtn}
         >
-          SET
+          Установить
         </button>
       </div>
 

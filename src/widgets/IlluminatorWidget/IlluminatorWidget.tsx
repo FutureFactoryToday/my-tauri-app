@@ -31,7 +31,7 @@ export default function IlluminatorWidget({ label, onVisibleChange, on800nmChang
 
       {/* Ряд White */}
       <div className={styles.rowWrapper}>
-        <span className={styles.rowLabel}>White</span>
+        <span className={styles.rowLabel}>Видимый (белый)</span>
         <div className={styles.illuminatorRow}>
           <Iswitch checked={visOn} onChange={setVisOn} />
           <div className={`${styles.inputGroup} ${!visOn ? styles.disabled : ''}`}>
@@ -40,14 +40,14 @@ export default function IlluminatorWidget({ label, onVisibleChange, on800nmChang
               onChange={(e) => validateAndSet(e.target.value, setVisVal)}
               disabled={!visOn}
             />
-            <button className={styles.submitBtn} onClick={() => onVisibleChange?.(visOn, Number(visVal))}>SET</button>
+            <button className={styles.submitBtn} onClick={() => onVisibleChange?.(visOn, Number(visVal))}>Установить</button>
           </div>
         </div>
       </div>
 
       {/* Ряд 800nm */}
       <div className={styles.rowWrapper}>
-        <span className={styles.rowLabel}>800nm</span>
+        <span className={styles.rowLabel}>800 нм</span>
         <div className={styles.illuminatorRow}>
           <Iswitch checked={irOn} onChange={setIrOn} />
           <div className={`${styles.inputGroup} ${!irOn ? styles.disabled : ''}`}>
@@ -56,14 +56,14 @@ export default function IlluminatorWidget({ label, onVisibleChange, on800nmChang
               onChange={(e) => validateAndSet(e.target.value, setIrVal)}
               disabled={!irOn}
             />
-            <button className={styles.submitBtn} onClick={() => on800nmChange?.(irOn, Number(irVal))}>SET</button>
+            <button className={styles.submitBtn} onClick={() => on800nmChange?.(irOn, Number(irVal))}>Установить</button>
           </div>
         </div>
       </div>
 
       {/* Ряд 365nm */}
       <div className={styles.rowWrapper}>
-        <span className={styles.rowLabel}>365nm</span>
+        <span className={styles.rowLabel}>365 нм</span>
         <div className={styles.illuminatorRow}>
           <Iswitch checked={uvOn} onChange={setUvOn} />
           <div className={`${styles.inputGroup} ${!uvOn ? styles.disabled : ''}`}>
@@ -72,7 +72,7 @@ export default function IlluminatorWidget({ label, onVisibleChange, on800nmChang
               onChange={(e) => validateAndSet(e.target.value, setUvVal)}
               disabled={!uvOn}
             />
-            <button className={styles.submitBtn} onClick={() => on365nmChange?.(uvOn, Number(uvVal))}>SET</button>
+            <button className={styles.submitBtn} onClick={() => on365nmChange?.(uvOn, Number(uvVal))}>Установить</button>
           </div>
         </div>
       </div>

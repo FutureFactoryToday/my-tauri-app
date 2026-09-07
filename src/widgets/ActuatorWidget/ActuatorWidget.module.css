@@ -9,7 +9,7 @@
   flex-direction: column;
   gap: 20px;
   min-width: 300px;
-  max-height: 350px; 
+  max-height: 400px; 
   transition: all 0.2s ease;
 
   /* Добавляем эффект среза */
@@ -25,7 +25,7 @@
 
 .tile:not(.keyboardOpen):hover {
   opacity: 1;
-  flex: 0 0 350px;        /* фиксируем высоту через flex-basis */
+  flex: 0 0 400px;        /* фиксируем высоту через flex-basis */
   overflow: visible;
 }
 
