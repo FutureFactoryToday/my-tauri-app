@@ -86,16 +86,38 @@
 
 .panelPos {
   display: flex;
-  align-items: center;
   gap: 15px;
-  padding: 10px;
   background: #252525;
   border-radius: 1px;
+  /* align-items: stretch; */ /* по умолчанию, можно явно не писать */
+  height: 35px; /* или любая желаемая высота */
 }
 
-.panelPos > * {
-  flex: 1;
-  width: 100%;
+.panelPos > button {
+  flex: 1;              /* все кнопки получают равную долю ширины */
+  min-width: 100px;         /* предотвращает переполнение */
+  height: 35px;         /* растягиваем на всю высоту родителя */
+  background: #1c77bd;
+  color: white;
+  border: none;
+  border-radius: 1px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 8px;       /* внутренние отступы по горизонтали, чтобы текст не прилипал */
+  white-space: nowrap;  /* текст в одну строку (если не помещается – уменьшайте размер шрифта) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panelPos > button:active {
+  background: #0056b3;
+}
+
+.panelPos > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* 1. Стили панели инициализации */

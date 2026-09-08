@@ -17,7 +17,6 @@ export default function App() {
 
   const [initializationStatus, setInitializationStatus] = useState("Готов");
   const [currentMode, setCurrentMode] = useState("Режим 1");
-  const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
 
   // Обработка входящих сообщений для обновления температуры
   useEffect(() => {
@@ -99,16 +98,9 @@ export default function App() {
           }}
           onPosChange={(value) => {
             console.log("Move by:", value);
-            if (isPrecisionModeOn && isConnected) {
+            if (isConnected) {
               const cleanValue = value.replace('+', ''); // убираем знак +
               send(`imove ${cleanValue}`);
-            }
-          }}
-          onPrecisionModeToggle={(active) => {
-            console.log("Precision mode:", active ? "ON" : "OFF");
-            setIsPrecisionModeOn(active);
-            if (isPrecisionModeOn && isConnected) {
-              send(active ? "M108" : "M109"); // Команды для точного режима
             }
           }}
         />

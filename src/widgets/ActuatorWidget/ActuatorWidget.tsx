@@ -7,6 +7,7 @@ interface Props {
   onHomeClick?: () => void;
   onModeChange?: (mode: string) => void;
   onPosChange?: (mode: string) => void;
+  onStepModeToggle?: (active: boolean) => void;
   onPrecisionModeToggle?: (active: boolean) => void;
   onPulse?: () => void;
   initializationStatus?: string;
@@ -18,13 +19,16 @@ export default function ActuatorWidget({
   onHomeClick,
   onModeChange,
   onPosChange,
+  onStepModeToggle,
   onPrecisionModeToggle,
   initializationStatus = 'Готов',
   currentMode = 'Режим 1'
 }: Props) {
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
-    const handleHomeClick = () => {
-      if (onHomeClick) onHomeClick();
+  const [isStepModeOn, setIsStepModeOn] = useState(false);
+
+  const handleHomeClick = () => {
+    if (onHomeClick) onHomeClick();
   };
 
   const isMovingRef = useRef(false);
@@ -32,6 +36,12 @@ export default function ActuatorWidget({
   const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const mode = e.target.value;
     if (onModeChange) onModeChange(mode);
+  };
+
+  const handleStepModeToggle = () => {
+    const newState = !isStepModeOn;
+    setIsStepModeOn(newState);
+    if (onStepModeToggle) onStepModeToggle(newState);
   };
 
   const handlePrecisionModeToggle = () => {
@@ -95,24 +105,30 @@ export default function ActuatorWidget({
       </div>
 
       {/* 3. Панель управления положением */}
-      <div className={styles.panelPos}>
-        {moveSteps.map((step) => (
-          <button
-            key={step.value}
-            onClick={() => onPosChange?.(step.value)}
-            disabled={!isReady}
-            className={styles.goBtn}
-          >
-            {step.label}
-          </button>
-        ))}
+      <div className={`${styles.panel} ${!isStepModeOn ? styles.disabled : ''}`}>
+        <Iswitch checked={isStepModeOn} onChange={handleStepModeToggle} />
+        <span>ШАГОВЫЙ РЕЖИМ</span>
+
+        <div className={styles.panelPos}>
+          {moveSteps.map((step) => (
+            <button
+              key={step.value}
+              onClick={() => onPosChange?.(step.value)}
+              disabled={!isReady || !isStepModeOn}
+              className={styles.goBtn}
+            >
+              {step.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 4. Панель плавного управления */}
-      <div className={styles.panel}>
+      <div className={`${styles.panel} ${!isPrecisionModeOn ? styles.disabled : ''}`}>
         <Iswitch checked={isPrecisionModeOn} onChange={handlePrecisionModeToggle} />
         <span>ПЛАВНЫЙ РЕЖИМ</span>
 
+        <div className={styles.panelPos}>
         <button
           onMouseDown={() => {
             if (!isMovingRef.current) {
@@ -150,8 +166,8 @@ export default function ActuatorWidget({
               onPosChange?.("0");
             }
           }}
-          className={styles.homeBtn}
-          disabled={!isReady}
+          className={styles.goBtn}
+          disabled={!isReady || !isPrecisionModeOn}
         >
           &lt;&lt;
         </button>
@@ -193,11 +209,12 @@ export default function ActuatorWidget({
               onPosChange?.("0");
             }
           }}
-          className={styles.homeBtn}
-          disabled={!isReady}
+          className={styles.goBtn}
+          disabled={!isReady || !isPrecisionModeOn}
         >
           &gt;&gt;
         </button>
+        </div>
       </div>
     </div>
   );
