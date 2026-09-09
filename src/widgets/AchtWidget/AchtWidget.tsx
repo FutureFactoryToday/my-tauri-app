@@ -109,20 +109,35 @@ export default function AchtWidget({
   }, [isKeyboardOpen, keyboardHeight]);
 
   // --- Обработчики ---
-  const handleInputChange = (val: string) => {
-    console.log('[AchtWidget] handleInputChange, val =', val);
-    if (val === '') {
+const handleInputChange = (val: string) => {
+  console.log('[AchtWidget] handleInputChange, val =', val);
+
+  // Пустая строка разрешена (например, для очистки поля)
+  if (val === '') {
+    setInputValue(val);
+    return;
+  }
+  // Допустимы только цифры и максимум одна точка, после точки – не более одной цифры
+  if (!/^[0-9]*\.?[0-9]?$/.test(val)) return;
+  // Запрет ведущих нулей (кроме случая "0." или "0.x")
+  if (val.startsWith('0') && val.length > 1 && val[1] !== '.') return;
+  const num = parseFloat(val);
+  if (isNaN(num)) return; // например, если val === '.'
+  // Максимальное значение – 800
+  if (num > 800) return;
+  // Проверка минимального значения (>= 10)
+  if (num < 10) {
+    // Разрешаем только одиночные цифры от 1 до 9 – они могут стать >=10 при добавлении цифр
+    if (val.length === 1 && val >= '1' && val <= '9') {
       setInputValue(val);
       return;
     }
-    if (!/^[0-9]*\.?[0-9]?$/.test(val)) return;
-    const num = parseFloat(val);
-    if (!isNaN(num)) {
-      if (num > 10) return;
-      if (val.startsWith('0') && val.length > 1 && val[1] !== '.') return;
-    }
-    setInputValue(val);
-  };
+    // Всё остальное (0, 0.5, 1.2, 9.9 и т.п.) – запрещено
+    return;
+  }
+  // Если все проверки пройдены
+  setInputValue(val);
+};
 
   const getValidHeatValue = () => {
     const num = parseFloat(inputValue);

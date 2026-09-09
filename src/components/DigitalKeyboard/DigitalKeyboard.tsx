@@ -19,35 +19,48 @@ const DigitalKeyboard: React.FC<DigitalKeyboardProps> = ({
   const [inputValue, setInputValue] = useState('');
   const keyboardRef = useRef<HTMLDivElement>(null);
 
-  // При открытии – пустое поле, при закрытии – сброс стилей
-  useEffect(() => {
-    if (open) {
-      setInputValue('');
-      if (targetRef?.current) {
-        const el = targetRef.current;
-        const origPos = el.style.position;
-        const origZ = el.style.zIndex;
-        if (getComputedStyle(el).position === 'static') {
-          el.style.position = 'relative';
-        }
-        el.style.zIndex = '1001';
-        (el as any).__origPos = origPos;
-        (el as any).__origZ = origZ;
-      }
-    } else {
-      if (targetRef?.current) {
-        const el = targetRef.current;
-        const origPos = (el as any).__origPos;
-        const origZ = (el as any).__origZ;
-        if (origPos !== undefined) el.style.position = origPos;
-        if (origZ !== undefined) el.style.zIndex = origZ;
-        else el.style.zIndex = '';
-        delete (el as any).__origPos;
-        delete (el as any).__origZ;
-      }
-      if (onHeightChange) onHeightChange(0);
+// 1. Сброс inputValue только при открытии (сравниваем предыдущее состояние open)
+useEffect(() => {
+  if (open) {
+    setInputValue('');
+  }
+}, [open]); // теперь только open
+
+// 2. Обработка стилей targetRef (без сброса inputValue)
+useEffect(() => {
+  if (open && targetRef?.current) {
+    const el = targetRef.current;
+    const origPos = el.style.position;
+    const origZ = el.style.zIndex;
+    if (getComputedStyle(el).position === 'static') {
+      el.style.position = 'relative';
     }
-  }, [open, targetRef, onHeightChange]);
+    el.style.zIndex = '1001';
+    (el as any).__origPos = origPos;
+    (el as any).__origZ = origZ;
+    // cleanup при закрытии или при изменении targetRef
+    return () => {
+      const origPos2 = (el as any).__origPos;
+      const origZ2 = (el as any).__origZ;
+      if (origPos2 !== undefined) el.style.position = origPos2;
+      if (origZ2 !== undefined) el.style.zIndex = origZ2;
+      else el.style.zIndex = '';
+      delete (el as any).__origPos;
+      delete (el as any).__origZ;
+    };
+  }
+  // Если open === false, тоже нужно восстановить стили
+  if (!open && targetRef?.current) {
+    const el = targetRef.current;
+    const origPos = (el as any).__origPos;
+    const origZ = (el as any).__origZ;
+    if (origPos !== undefined) el.style.position = origPos;
+    if (origZ !== undefined) el.style.zIndex = origZ;
+    else el.style.zIndex = '';
+    delete (el as any).__origPos;
+    delete (el as any).__origZ;
+  }
+}, [open, targetRef]); // оставляем targetRef, но теперь он не сбрасывает inputValue
 
   // Измерение высоты
   useLayoutEffect(() => {
@@ -62,16 +75,27 @@ const DigitalKeyboard: React.FC<DigitalKeyboardProps> = ({
   }, [open, onHeightChange]);
 
   // Валидация (копия из родителя)
-  const isValidInput = (candidate: string): boolean => {
-    if (candidate === '') return true;
-    if (!/^[0-9]*\.?[0-9]?$/.test(candidate)) return false;
-    const num = parseFloat(candidate);
-    if (!isNaN(num)) {
-      if (num > 10) return false;
-      if (candidate.startsWith('0') && candidate.length > 1 && candidate[1] !== '.') return false;
+const isValidInput = (candidate: string): boolean => {
+  if (candidate === '') return true;                     // разрешаем очистку поля
+  // допустимы только цифры, одна точка и не более одной цифры после неё
+  if (!/^[0-9]*\.?[0-9]?$/.test(candidate)) return false;
+  const num = parseFloat(candidate);
+  if (isNaN(num)) return false;                          // например, одиночная '.' – запрещена
+  // верхняя граница
+  if (num > 800) return false;
+  // нижняя граница: числа меньше 10 разрешаем только как одиночные цифры 1..9 (префиксы)
+  if (num < 10) {
+    if (candidate.length === 1 && candidate >= '1' && candidate <= '9') {
+      return true;
     }
-    return true;
-  };
+    return false;
+  }
+  // дополнительно защита от ведущих нулей (для чисел >=10 они не встречаются, но оставлено для единообразия)
+  if (candidate.startsWith('0') && candidate.length > 1 && candidate[1] !== '.') {
+    return false;
+  }
+  return true;
+};
 
   // Нажатие клавиши – только локальное обновление, onChange НЕ вызываем
   const handleKeyPress = (char: string) => {
