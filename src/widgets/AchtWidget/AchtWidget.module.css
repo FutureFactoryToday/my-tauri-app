@@ -155,3 +155,10 @@
 .submitBtn:active {
   background: #0056b3;
 }
+
+.inputErrorText {
+  color: #ff4d4f;
+  caret-color: transparent;
+  font-size: 0.9rem;
+  font-weight: bold;
+}

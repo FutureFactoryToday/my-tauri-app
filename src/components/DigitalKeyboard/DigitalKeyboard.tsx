@@ -75,27 +75,28 @@ useEffect(() => {
   }, [open, onHeightChange]);
 
   // Валидация (копия из родителя)
-const isValidInput = (candidate: string): boolean => {
-  if (candidate === '') return true;                     // разрешаем очистку поля
-  // допустимы только цифры, одна точка и не более одной цифры после неё
-  if (!/^[0-9]*\.?[0-9]?$/.test(candidate)) return false;
-  const num = parseFloat(candidate);
-  if (isNaN(num)) return false;                          // например, одиночная '.' – запрещена
-  // верхняя граница
-  if (num > 800) return false;
-  // нижняя граница: числа меньше 10 разрешаем только как одиночные цифры 1..9 (префиксы)
-  if (num < 10) {
-    if (candidate.length === 1 && candidate >= '1' && candidate <= '9') {
-      return true;
+  const isValidInput = (candidate: string): boolean => {
+    if (candidate === '') return true;
+    if (!/^[0-9]*\.?[0-9]?$/.test(candidate)) return false;
+
+    const num = parseFloat(candidate);
+    if (isNaN(num)) return false;
+
+    if (num > 800) return false;
+
+    // Запрет лишних ведущих нулей: "00", "05" — но "0", "0.", "0.5" разрешены
+    if (candidate.length > 1 && candidate[0] === '0' && candidate[1] !== '.') {
+      return false;
     }
-    return false;
-  }
-  // дополнительно защита от ведущих нулей (для чисел >=10 они не встречаются, но оставлено для единообразия)
-  if (candidate.startsWith('0') && candidate.length > 1 && candidate[1] !== '.') {
-    return false;
-  }
-  return true;
-};
+
+    if (num < 10) {
+      // Разрешаем одиночную цифру 0–9 с опциональной точкой и одной цифрой после:
+      // "0", "0.", "0.5", "5", "5.", "5.5"
+      return /^[0-9]\.?[0-9]?$/.test(candidate);
+    }
+
+    return true;
+  };
 
   // Нажатие клавиши – только локальное обновление, onChange НЕ вызываем
   const handleKeyPress = (char: string) => {

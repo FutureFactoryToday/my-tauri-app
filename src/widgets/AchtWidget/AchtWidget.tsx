@@ -3,6 +3,9 @@ import styles from './AchtWidget.module.css';
 import Iswitch from '../../components/Iswitch/Iswitch';
 import DigitalKeyboard from '../../components/DigitalKeyboard/DigitalKeyboard';
 
+const MIN_TEMP = 10;
+const MAX_TEMP = 600;
+
 interface Props {
   label: string;
   onHeatChange?: (active: boolean) => void;
@@ -28,6 +31,8 @@ export default function AchtWidget({
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [shiftAmount, setShiftAmount] = useState(0);
+
+  const [validationHint, setValidationHint] = useState('');
 
   const tileRef = useRef<HTMLDivElement>(null);
   const focusIntervalRef = useRef<number | null>(null);
@@ -109,40 +114,32 @@ export default function AchtWidget({
   }, [isKeyboardOpen, keyboardHeight]);
 
   // --- Обработчики ---
-const handleInputChange = (val: string) => {
-  console.log('[AchtWidget] handleInputChange, val =', val);
-
-  // Пустая строка разрешена (например, для очистки поля)
-  if (val === '') {
-    setInputValue(val);
-    return;
-  }
-  // Допустимы только цифры и максимум одна точка, после точки – не более одной цифры
-  if (!/^[0-9]*\.?[0-9]?$/.test(val)) return;
-  // Запрет ведущих нулей (кроме случая "0." или "0.x")
-  if (val.startsWith('0') && val.length > 1 && val[1] !== '.') return;
-  const num = parseFloat(val);
-  if (isNaN(num)) return; // например, если val === '.'
-  // Максимальное значение – 800
-  if (num > 800) return;
-  // Проверка минимального значения (>= 10)
-  if (num < 10) {
-    // Разрешаем только одиночные цифры от 1 до 9 – они могут стать >=10 при добавлении цифр
-    if (val.length === 1 && val >= '1' && val <= '9') {
+  const handleInputChange = (val: string) => {
+    if (val === '') {
       setInputValue(val);
+      setValidationHint('');
       return;
     }
-    // Всё остальное (0, 0.5, 1.2, 9.9 и т.п.) – запрещено
-    return;
-  }
-  // Если все проверки пройдены
-  setInputValue(val);
-};
+    if (!/^[0-9]*\.?[0-9]?$/.test(val)) return;
+    if (val.startsWith('0') && val.length > 1 && val[1] !== '.') return;
+
+    const num = parseFloat(val);
+    if (isNaN(num)) return;
+
+    if (num < MIN_TEMP || num > MAX_TEMP) {
+      setInputValue(val);
+      setValidationHint(`ВВЕДИТЕ ЗНАЧЕНИЕ ОТ ${MIN_TEMP} ДО ${MAX_TEMP}`);
+      return;
+    }
+
+    setInputValue(val);
+    setValidationHint('');
+  };
 
   const getValidHeatValue = () => {
     const num = parseFloat(inputValue);
-    if (isNaN(num) || num < 0.1) return 0.1;
-    return num;
+    if (isNaN(num)) return MIN_TEMP;
+    return Math.min(Math.max(num, MIN_TEMP), MAX_TEMP); // только для внешних вызовов, не для UI
   };
 
   const handleHeatToggle = () => {
@@ -160,10 +157,16 @@ const handleInputChange = (val: string) => {
   };
 
   const handleSubmit = () => {
-    console.log('[AchtWidget] handleSubmit');
-    const validNum = getValidHeatValue();
-    setInputValue(validNum.toFixed(1));
-    if (onValueSubmit) onValueSubmit(validNum);
+    const num = parseFloat(inputValue);
+
+    if (isNaN(num) || num < MIN_TEMP || num > MAX_TEMP) {
+      setValidationHint(`Введите значение от ${MIN_TEMP} до ${MAX_TEMP}`);
+      return; // ничего не отправляем
+    }
+
+    setValidationHint('');
+    setInputValue(num.toFixed(1));
+    if (onValueSubmit) onValueSubmit(num);
   };
 
   const handleKeyboardClose = () => {
@@ -207,27 +210,39 @@ const handleInputChange = (val: string) => {
       <div className={`${styles.inputGroup} ${!isHeatOn ? styles.disabled : ''}`}>
         <input
           type="text"
-          value={inputValue}
+          value={validationHint || inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
           onFocus={() => {
             console.log('[AchtWidget] input onFocus, открываем клавиатуру');
             setIsKeyboardOpen(true);
           }}
-          onBlur={(e) => {
-            console.log('[AchtWidget] input onBlur, current activeElement =', document.activeElement);
-            const num = parseFloat(e.target.value);
-            if (isNaN(num) || num < 0.1) {
-              setInputValue('0.1');
+          onBlur={() => {
+            // Пока клавиатура открыта — blur ожидаем (клик по клавише), не валидируем
+            if (isKeyboardOpen) return;
+
+            const num = parseFloat(inputValue);
+
+            if (inputValue === '' || isNaN(num)) {
+              setInputValue(String(MIN_TEMP));
+              setValidationHint('');
+              return;
             }
+
+            if (num < MIN_TEMP || num > MAX_TEMP) {
+              setValidationHint(`Введите значение от ${MIN_TEMP} до ${MAX_TEMP}`);
+              return;
+            }
+
+            setValidationHint('');
           }}
           disabled={!isHeatOn}
-          className={styles.input}
+          className={`${styles.input} ${validationHint ? styles.inputErrorText : ''}`}
           placeholder="0.0"
           inputMode="none"
         />
         <button
           onClick={handleSubmit}
-          disabled={!isHeatOn}
+          disabled={!isHeatOn || !!validationHint}
           className={styles.submitBtn}
         >
           Установить
