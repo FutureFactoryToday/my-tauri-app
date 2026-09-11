@@ -137,23 +137,10 @@ export default function App() {
 
         <IlluminatorWidget 
           label="Осветитель"
-          onVisibleChange={(active, power) => {
-            console.log("White Light:", active, "Power:", power);
-            if(isConnected) {
-              // Пример команды: L1 - тип лампы, S - мощность
-              send(`M150 L1 S${active ? power : 0}`); 
-            }
-          }}
-          on800nmChange={(active, power) => {
-            console.log("800nm (IR):", active, "Power:", power);
-            if(isConnected) {
-              send(`M150 L2 S${active ? power : 0}`);
-            }
-          }}
-          on365nmChange={(active, power) => {
-            console.log("365nm (UV):", active, "Power:", power);
-            if(isConnected) {
-              send(`M150 L3 S${active ? power : 0}`);
+          onCommand={(command) => {
+            console.log("Illuminator command:", command);
+            if (isConnected) {
+              send(command);
             }
           }}
         />

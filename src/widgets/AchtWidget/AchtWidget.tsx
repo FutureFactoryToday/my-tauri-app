@@ -36,82 +36,88 @@ export default function AchtWidget({
 
   const tileRef = useRef<HTMLDivElement>(null);
   const focusIntervalRef = useRef<number | null>(null);
+  const naturalBottomRef = useRef<number | null>(null);
 
-  console.log('[AchtWidget] render, isKeyboardOpen =', isKeyboardOpen);
-
-  // Остановка повторных попыток
+  // --- Возврат фокуса ---
   const stopFocusRetries = useCallback(() => {
     if (focusIntervalRef.current) {
       clearInterval(focusIntervalRef.current);
       focusIntervalRef.current = null;
-      console.log('[AchtWidget] stopFocusRetries: интервал очищен');
     }
   }, []);
 
-  // Возврат фокуса с повторными попытками до успеха
   const setFocusToTile = useCallback(() => {
-    console.log('[AchtWidget] setFocusToTile вызван');
-    if (!tileRef.current) {
-      console.log('[AchtWidget] setFocusToTile: tileRef.current = null');
-      return;
-    }
-    stopFocusRetries(); // сбрасываем предыдущие попытки
+    if (!tileRef.current) return;
+    stopFocusRetries();
 
-    // Пробуем сразу
     tileRef.current.focus({ preventScroll: true });
-    console.log('[AchtWidget] setFocusToTile: после focus(), activeElement =', document.activeElement);
-    if (document.activeElement === tileRef.current) {
-      console.log('[AchtWidget] setFocusToTile: фокус успешно установлен с первой попытки');
-      return;
-    }
+    if (document.activeElement === tileRef.current) return;
 
-    // Если не получилось — запускаем интервал
-    console.log('[AchtWidget] setFocusToTile: фокус не установлен, запускаем интервал');
     focusIntervalRef.current = window.setInterval(() => {
       if (!tileRef.current) {
-        console.log('[AchtWidget] setFocusToTile (interval): tileRef.current = null, очищаем');
         stopFocusRetries();
         return;
       }
       tileRef.current.focus({ preventScroll: true });
-      console.log('[AchtWidget] setFocusToTile (interval): после focus, activeElement =', document.activeElement);
       if (document.activeElement === tileRef.current) {
-        console.log('[AchtWidget] setFocusToTile (interval): фокус установлен, очищаем интервал');
         stopFocusRetries();
       }
     }, 100);
   }, [stopFocusRetries]);
 
-  // Очистка интервала при размонтировании
   useEffect(() => {
-    console.log('[AchtWidget] useEffect cleanup для stopFocusRetries');
     return () => stopFocusRetries();
   }, [stopFocusRetries]);
 
-  // Возврат фокуса при закрытии клавиатуры
   useEffect(() => {
-    console.log('[AchtWidget] useEffect isKeyboardOpen =', isKeyboardOpen);
     if (!isKeyboardOpen) {
-      console.log('[AchtWidget] Клавиатура закрыта, планируем возврат фокуса через 50ms');
-      setTimeout(() => {
-        console.log('[AchtWidget] setTimeout для возврата фокуса, activeElement до =', document.activeElement);
-        setFocusToTile();
-        console.log('[AchtWidget] setTimeout для возврата фокуса, activeElement после =', document.activeElement);
-      }, 50);
+      setTimeout(() => setFocusToTile(), 50);
     }
   }, [isKeyboardOpen, setFocusToTile]);
 
-  // Вычисление поднятия виджета при перекрытии
+  // --- Запоминаем естественную нижнюю границу ---
   useEffect(() => {
-    if (!isKeyboardOpen || keyboardHeight === 0 || !tileRef.current) {
+    if (isKeyboardOpen && tileRef.current && naturalBottomRef.current === null) {
+      naturalBottomRef.current = tileRef.current.getBoundingClientRect().bottom;
+    }
+    if (!isKeyboardOpen) {
+      naturalBottomRef.current = null;
+    }
+  }, [isKeyboardOpen]);
+
+  // --- Сдвиг виджета ровно над клавиатурой ---
+  useEffect(() => {
+    if (!isKeyboardOpen || keyboardHeight === 0 || naturalBottomRef.current === null) {
       setShiftAmount(0);
       return;
     }
-    const rect = tileRef.current.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
-    const overlaps = rect.bottom > windowHeight - keyboardHeight;
-    setShiftAmount(overlaps ? keyboardHeight : 0);
+    const keyboardTop = window.innerHeight - keyboardHeight;
+    const overlap = naturalBottomRef.current - keyboardTop;
+    setShiftAmount(overlap > 0 ? overlap : 0);
   }, [isKeyboardOpen, keyboardHeight]);
+
+  // --- Сдвиг соседей выше ---
+  useEffect(() => {
+    if (!tileRef.current) return;
+    const parent = tileRef.current.parentElement;
+    if (!parent) return;
+
+    const siblings = Array.from(parent.children);
+    const myIndex = siblings.indexOf(tileRef.current);
+    const previousSiblings = siblings.slice(0, myIndex) as HTMLElement[];
+
+    previousSiblings.forEach((el) => {
+      el.style.position = 'relative';
+      el.style.transition = 'top 0.3s ease';
+      el.style.top = shiftAmount ? `-${shiftAmount}px` : '0';
+    });
+
+    return () => {
+      previousSiblings.forEach((el) => {
+        el.style.top = '0';
+      });
+    };
+  }, [shiftAmount]);
 
   // --- Обработчики ---
   const handleInputChange = (val: string) => {
@@ -136,11 +142,11 @@ export default function AchtWidget({
     setValidationHint('');
   };
 
-  const getValidHeatValue = () => {
-    const num = parseFloat(inputValue);
-    if (isNaN(num)) return MIN_TEMP;
-    return Math.min(Math.max(num, MIN_TEMP), MAX_TEMP); // только для внешних вызовов, не для UI
-  };
+  // const getValidHeatValue = () => {
+  //   const num = parseFloat(inputValue);
+  //   if (isNaN(num)) return MIN_TEMP;
+  //   return Math.min(Math.max(num, MIN_TEMP), MAX_TEMP);
+  // };
 
   const handleHeatToggle = () => {
     const newState = !isHeatOn;
@@ -161,7 +167,7 @@ export default function AchtWidget({
 
     if (isNaN(num) || num < MIN_TEMP || num > MAX_TEMP) {
       setValidationHint(`Введите значение от ${MIN_TEMP} до ${MAX_TEMP}`);
-      return; // ничего не отправляем
+      return;
     }
 
     setValidationHint('');
@@ -170,7 +176,6 @@ export default function AchtWidget({
   };
 
   const handleKeyboardClose = () => {
-    console.log('[AchtWidget] handleKeyboardClose, текущий inputValue =', inputValue);
     if (inputValue.endsWith('.')) {
       setInputValue(inputValue.slice(0, -1));
     }
@@ -183,8 +188,9 @@ export default function AchtWidget({
       ref={tileRef}
       tabIndex={0}
       style={{
-        marginTop: shiftAmount ? `-${shiftAmount}px` : '0',
-        transition: 'margin-top 0.3s ease',
+        position: 'relative',
+        top: shiftAmount ? -shiftAmount : 0,
+        transition: 'top 0.3s ease',
       }}
     >
       <div className={styles.header}>{label}</div>
@@ -212,27 +218,20 @@ export default function AchtWidget({
           type="text"
           value={validationHint || inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
-          onFocus={() => {
-            console.log('[AchtWidget] input onFocus, открываем клавиатуру');
-            setIsKeyboardOpen(true);
-          }}
+          onFocus={() => setIsKeyboardOpen(true)}
           onBlur={() => {
-            // Пока клавиатура открыта — blur ожидаем (клик по клавише), не валидируем
             if (isKeyboardOpen) return;
 
             const num = parseFloat(inputValue);
-
             if (inputValue === '' || isNaN(num)) {
               setInputValue(String(MIN_TEMP));
               setValidationHint('');
               return;
             }
-
             if (num < MIN_TEMP || num > MAX_TEMP) {
               setValidationHint(`Введите значение от ${MIN_TEMP} до ${MAX_TEMP}`);
               return;
             }
-
             setValidationHint('');
           }}
           disabled={!isHeatOn}
@@ -254,10 +253,7 @@ export default function AchtWidget({
         onClose={handleKeyboardClose}
         onChange={handleInputChange}
         targetRef={tileRef as React.RefObject<HTMLElement>}
-        onHeightChange={(height) => {
-          console.log('[AchtWidget] onHeightChange, height =', height);
-          setKeyboardHeight(height);
-        }}
+        onHeightChange={setKeyboardHeight}
       />
     </div>
   );
