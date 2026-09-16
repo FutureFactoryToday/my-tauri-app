@@ -244,6 +244,7 @@ export default function IlluminatorWidget({
             className={`${styles.input} ${hint ? styles.inputErrorText : ''}`}
             inputMode="none"
           />
+          <span>Люмен</span>
           <button
             className={styles.submitBtn}
             onClick={() => submitField(field)}

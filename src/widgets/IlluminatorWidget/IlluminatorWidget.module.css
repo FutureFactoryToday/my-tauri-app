@@ -21,6 +21,10 @@
   min-height: 0;         /* позволяют сжиматься до нуля при необходимости */
   overflow: hidden;      /* чтобы содержимое не вылезало за границы, пока виджет сжат */
   transition: flex 0.3s ease;  /* плавное изменение размера */
+
+  font-family: 'Arial';
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .tile:not(.keyboardOpen):hover {
@@ -67,8 +71,6 @@
 }
 
 .header {
-  font-family: 'Arial'; 
-  font-size: 1rem;
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -90,7 +92,7 @@
   left: 12px;
   background-color: var(--tile-blue); /* Должен совпадать с фоном плитки */
   padding: 0 5px;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: #888;
   font-weight: bold;
 }
@@ -105,8 +107,13 @@
 /* Input Group */
 .inputGroup {
   display: flex;
-  gap: 30px;
   transition: opacity 0.3s ease;
+
+  align-items: center;
+  gap: 20px;
+  background: #252525;
+  border-radius: 1px;
+  padding: 10px;
 }
 
 .inputGroup.disabled {
@@ -122,7 +129,7 @@
   padding: 8px;
   border-radius: 1px;
   outline: none;
-  width: 250px;
+  width: 300px;
 }
 
 .submitBtn {
@@ -133,7 +140,8 @@
   border-radius: 1px;
   cursor: pointer;
   font-family: 'Arial';
-  font-size: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .submitBtn:active {
@@ -143,6 +151,6 @@
 .inputErrorText {
   color: #ff4d4f;
   caret-color: transparent;
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: bold;
 }

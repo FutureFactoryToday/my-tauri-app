@@ -21,6 +21,10 @@
   min-height: 0;         /* позволяют сжиматься до нуля при необходимости */
   overflow: hidden;      /* чтобы содержимое не вылезало за границы, пока виджет сжат */
   transition: flex 0.3s ease;  /* плавное изменение размера */
+
+  font-family: 'Arial';
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .tile:not(.keyboardOpen):hover {
@@ -68,6 +72,7 @@
 .header {
   font-family: 'Arial';
   font-size: 1rem;
+  font-weight: bold;
   color: #fff;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -130,6 +135,7 @@
   cursor: pointer;
   font-family: 'Arial';
   font-size: 1rem;
+  font-weight: bold;
 }
 
 .homeBtn:active {
@@ -153,6 +159,7 @@
 .statusValue {
   font-weight: bold;
   font-size: 1rem;
+  font-weight: bold;
 }
 
 .ready {
@@ -175,6 +182,7 @@
   width: 60px;
   font-family: 'Arial';
   font-size: 1rem;
+  font-weight: bold;
 }
 
 .modeSelect:disabled {
@@ -191,6 +199,7 @@
   cursor: pointer;
   font-family: 'Arial';
   font-size: 1rem;
+  font-weight: bold;
 }
 
 .goBtn:active {
@@ -207,6 +216,7 @@
 span {
   font-family: 'Arial';
   font-size: 1rem;
+  font-weight: bold;
 }
 /* Ползунок кратности */
 .multiplierSlider {

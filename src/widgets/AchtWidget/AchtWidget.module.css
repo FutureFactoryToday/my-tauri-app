@@ -22,6 +22,10 @@
   min-height: 0;         /* позволяют сжиматься до нуля при необходимости */
   overflow: hidden;      /* чтобы содержимое не вылезало за границы, пока виджет сжат */
   transition: flex 0.3s ease;  /* плавное изменение размера */
+
+  font-family: 'Arial';
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .tile:not(.keyboardOpen):hover,
@@ -116,13 +120,19 @@
 .tempLabel {
   font-size: 0.7rem;
   color: #666;
+  font-weight: bold;
 }
 
 /* Input Group*/
 .inputGroup {
   display: flex;
-  gap: 8px;
   transition: opacity 0.3s ease;
+
+  align-items: center;
+  gap: 20px;
+  background: #252525;
+  border-radius: 1px;
+  padding: 10px;
 }
 
 .inputGroup.disabled {
@@ -149,7 +159,8 @@
   border-radius: 1px;
   cursor: pointer;
   font-family: 'Arial';
-  font-size: 0.8rem;
+  font-size: 1rem;
+  font-weight: bold;
 }
 
 .submitBtn:active {

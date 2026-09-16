@@ -239,6 +239,7 @@ export default function AchtWidget({
           placeholder="0.0"
           inputMode="none"
         />
+        <span>°C</span>
         <button
           onClick={handleSubmit}
           disabled={!isHeatOn || !!validationHint}
