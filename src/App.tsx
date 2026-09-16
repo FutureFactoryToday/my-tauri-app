@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import styles from './App.module.css';
 import './global.css';
 import Shell from './layout/Shell/Shell';
-//import DroWidget from './widgets/DroWidget/DroWidget';
+import LogoWidget from './widgets/LogoWidget/LogoWidget';
 import AchtWidget from './widgets/AchtWidget/AchtWidget';
 import IlluminatorWidget from './widgets/IlluminatorWidget/IlluminatorWidget';
 import ActuatorWidget from './widgets/ActuatorWidget/ActuatorWidget';
@@ -53,6 +53,10 @@ export default function App() {
 
   return (
     <Shell>
+        {/* LogoWidget */}
+        <LogoWidget 
+          label="Стенд оптический коллиматорный СОКМ-4-1600 Сер.№26002"
+        />
       <div className={styles.dashboard}>
         {/* Первая плитка открывает окно */}
         {/*<DroWidget 
@@ -62,6 +66,7 @@ export default function App() {
             setOpen(true);
             }}
         />*/}
+
 
         <ActuatorWidget
           label="Актуатор"

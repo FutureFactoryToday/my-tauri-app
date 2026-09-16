@@ -1,12 +1,10 @@
 .tile {
   /* Сохраняем ваши базовые стили */
-  background-color: var(--tile-blue);
-  opacity: var(--opacity);
-  border: 1px solid #333;
+  background-color: var(--grey);
   padding: 30px;
   color: white;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 30px;
   min-width: 300px;
   transition: all 0.2s ease;
@@ -47,8 +45,24 @@
 
   transition: opacity 0.2s ease;
 }
+
 .text {
   color: white;
   font-weight: bold;
   font-size: 1.2rem;
+}
+
+.tile {
+  display: flex;
+  align-items: center; /* вертикальное выравнивание по центру */
+  gap: 108px;            /* отступ между картинкой и текстом */
+  cursor: pointer;
+  padding: 20px 50px;
+}
+
+.logo {
+  width: 441px;         /* подставьте нужный размер */
+  height: 77px;
+  object-fit: contain;
+  flex-shrink: 0;      /* чтобы картинка не сжималась */
 }
