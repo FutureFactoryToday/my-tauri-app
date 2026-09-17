@@ -55,7 +55,7 @@ export default function App() {
     <Shell>
         {/* LogoWidget */}
         <LogoWidget 
-          label="Стенд оптический коллиматорный СОКМ-4-1600 Сер.№26002"
+          label="СОКМ-4-1600 Сер.№26002"
         />
       <div className={styles.dashboard}>
         {/* Первая плитка открывает окно */}
