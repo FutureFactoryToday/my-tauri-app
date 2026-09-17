@@ -27,13 +27,13 @@
   font-weight: bold;
 }
 
-.tile:not(.keyboardOpen):hover {
+.tile:not(.keyboardOpen):hover,
+.tile:not(.keyboardOpen):focus {
   opacity: 1;
-  max-height: 300px; 
-  flex: 0 0 300px;        /* фиксируем высоту через flex-basis */
+  max-height: 300px;
+  flex: 0 0 300px;
   overflow: visible;
 }
-
 .tile.keyboardOpen:hover {
   height: auto;
   overflow: hidden;
