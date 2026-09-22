@@ -106,7 +106,7 @@
   color: white;
   border: none;
   border-radius: 1px;
-  cursor: pointer;
+  cursor: default;
   font-size: 14px;
   padding: 0 8px;       /* внутренние отступы по горизонтали, чтобы текст не прилипал */
   white-space: nowrap;  /* текст в одну строку (если не помещается – уменьшайте размер шрифта) */
@@ -121,7 +121,6 @@
 
 .panelPos > button:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
   pointer-events: none;
 }
 
@@ -132,7 +131,7 @@
   border: none;
   padding: 8px 12px;
   border-radius: 1px;
-  cursor: pointer;
+  cursor: default;
   font-family: 'Arial';
   font-size: 1rem;
   font-weight: bold;
@@ -145,9 +144,13 @@
 .statusDisplay {
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   gap: 20px;
+  
+  flex: 1;          /* ← ВОТ ЭТО. Заставляет растянуться на всю ширину .panel */
+  /* или альтернатива: width: 100%; */
+  min-width: 0;     /* ← на всякий случай, чтобы flex-элементы могли сжиматься */
 }
 
 .statusLabel {
@@ -168,6 +171,25 @@
 
 .notReady {
   color: #ff6b6b;
+}
+
+.DroGroup {
+  display: flex;
+  align-items: baseline;      /* "1.2" и "mm" на одной линии */
+  gap: 20px;
+  margin-left: auto;          /* Прижимает к правому краю flex-родителя */
+}
+
+.DroValue {
+  font-weight: bold;
+  font-size: 2em;
+  color: #fff;
+  font-variant-numeric: tabular-nums;   /* Чтобы цифры не "прыгали" при изменении */
+}
+
+.DroLabel {
+  color: #888;
+  font-size: 1em;
 }
 
 /* 2. Стили панели управления положением */
@@ -196,7 +218,7 @@
   border: none;
   padding: 10px;
   border-radius: 1px;
-  cursor: pointer;
+  cursor: default;
   font-family: 'Arial';
   font-size: 1rem;
   font-weight: bold;
@@ -208,7 +230,6 @@
 
 .goBtn:disabled {
   background: #555;
-  cursor: not-allowed;
 }
 
 /* 3. Стили панели точного управления */

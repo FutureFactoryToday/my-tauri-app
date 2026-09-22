@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styles from './App.module.css';
 import './global.css';
 import Shell from './layout/Shell/Shell';
@@ -11,45 +11,8 @@ import { useCncServer } from './hooks/useCncServer';
 
 export default function App() {
   const {isConnected, isDeviceConnected, send, lastMessage } = useCncServer("ws://localhost:8080/ws");
-  //const [open, setOpen] = useState(false);
 
-  const [currentTemp, setCurrentTemp] = useState(24.5);
-
-  const [initializationStatus, setInitializationStatus] = useState("Готов");
   const [currentMode, setCurrentMode] = useState("Режим 1");
-
-  // Обработка входящих сообщений для обновления температуры
-  useEffect(() => {
-    if (!lastMessage) return;
-    
-    console.log('Received from server:', lastMessage);
-    
-    // Проверяем разные форматы сообщений с температурой
-    // Формат 1: "heat is 24.5"
-    if (lastMessage.startsWith('Heat is')) {
-      const rawValue  = parseFloat(lastMessage.replace('Heat is ', '').trim());
-      if (!isNaN(rawValue )) {
-        const tempValue = rawValue / 10;  // Делим на 10
-        setCurrentTemp(tempValue);
-        console.log('Temperature updated to:', tempValue);
-      }
-    }
-  }, [lastMessage]);
-
-  // Периодический опрос температуры
-  useEffect(() => {
-    if (!isConnected) return;
-    
-    // Запрашиваем температуру сразу после подключения
-    //send("heat current");
-    
-    // И затем каждые 5 секунд
-    const interval = setInterval(() => {
-      send("heat current");
-    }, 5000);
-    
-    return () => clearInterval(interval);
-  }, [isConnected, send]);
 
   return (
     <Shell>
@@ -69,17 +32,15 @@ export default function App() {
 
 
         <ActuatorWidget
-          label="Актуатор"
-          initializationStatus={initializationStatus}
+          label="Актуатор (мира)"
           currentMode={currentMode}
+          send={send}
+          lastMessage={lastMessage}
+          isConnected={isConnected}
           onHomeClick={() => {
             console.log("Home button clicked");
             if (isConnected) {
-              send("G28"); // Команда "Домой" для ЧПУ
-              // Обновляем статус инициализации после отправки команды
-              setInitializationStatus("Инициализация...");
-              // Здесь можно добавить логику ожидания ответа от станка
-              // и установки статуса "Ready"
+              send("amove home");
             }
           }}
           onModeChange={(mode) => {
@@ -113,29 +74,27 @@ export default function App() {
         
         <AchtWidget 
           label="АЧТ"
-          currentTemp={currentTemp} // Здесь можно передать переменную из сокета
+          send={send}
+          lastMessage={lastMessage}
+          isConnected={isConnected}
           onHeatChange={(active) => {
             console.log("Heater status:", active);
-            // Например: send(active ? "HEATER_ON" : "HEATER_OFF");
           }}
           onFanChange={(active) => {
             console.log("Fan status:", active);
-            // Например: send(active ? "M106" : "M107");
           }}
           onHeater={(command) => {
             if (isConnected) send(command);
-              if (command === "heat on" || command === "heat off") {
-                setTimeout(() => send("heat current"), 100);
-              }
+            // Убираем setTimeout — теперь виджет сам обновит температуру
           }}
-          onFan={(command) => {            // добавляем onFan
-            if (isConnected) send(command); // command будет "led on" или "led off"
+          onFan={(command) => {
+            if (isConnected) send(command);
           }}
           onValueSubmit={(value) => {
             console.log("Setting target temp to:", value);
-            if(isConnected) {
-              send(`heat ${value.toFixed(1)}`); // Отправляем команду на изменение дельты температуры
-              setTimeout(() => send("heat current"), 200);
+            if (isConnected) {
+              send(`heat ${value.toFixed(1)}`);
+              // setTimeout тоже убираем, виджет сам запросит
             }
           }}
         />

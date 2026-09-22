@@ -37,6 +37,7 @@ export default function IlluminatorWidget({
   const tileRef = useRef<HTMLDivElement>(null);
   const focusIntervalRef = useRef<number | null>(null);
   const naturalBottomRef = useRef<number | null>(null);
+  const suppressFocusRef = useRef(false);
 
   const getValueFor = useCallback((field: Field): string => {
     if (field === 'vis') return visVal;
@@ -68,16 +69,30 @@ export default function IlluminatorWidget({
     if (!tileRef.current) return;
     stopFocusRetries();
 
-    tileRef.current.focus({ preventScroll: true });
-    if (document.activeElement === tileRef.current) return;
+    suppressFocusRef.current = true;
 
+    const active = document.activeElement as HTMLElement | null;
+    if (active && active !== tileRef.current && tileRef.current.contains(active)) {
+      active.blur();
+    }
+
+    tileRef.current.focus({ preventScroll: true });
+    if (document.activeElement === tileRef.current) {
+      suppressFocusRef.current = false;
+      return;
+    }
+
+    let attempts = 0;
     focusIntervalRef.current = window.setInterval(() => {
-      if (!tileRef.current) {
+      attempts += 1;
+      if (!tileRef.current || attempts > 10) {
         stopFocusRetries();
+        suppressFocusRef.current = false;
         return;
       }
       tileRef.current.focus({ preventScroll: true });
       if (document.activeElement === tileRef.current) {
+        suppressFocusRef.current = false;
         stopFocusRetries();
       }
     }, 100);
@@ -88,9 +103,10 @@ export default function IlluminatorWidget({
   }, [stopFocusRetries]);
 
   useEffect(() => {
-    if (!isKeyboardOpen) {
-      setTimeout(() => setFocusToTile(), 50);
-    }
+    if (isKeyboardOpen) return;
+
+    const t = window.setTimeout(() => setFocusToTile(), 50);
+    return () => window.clearTimeout(t);   // ← добавить cleanup
   }, [isKeyboardOpen, setFocusToTile]);
 
   // --- Запоминаем естественную нижнюю границу ---
@@ -161,6 +177,7 @@ export default function IlluminatorWidget({
   };
 
   const openKeyboardFor = (field: Field) => {
+    if (suppressFocusRef.current) return;   // ← добавить
     setActiveField(field);
     setIsKeyboardOpen(true);
   };
@@ -174,6 +191,7 @@ export default function IlluminatorWidget({
     }
     setIsKeyboardOpen(false);
     setActiveField(null);
+    suppressFocusRef.current = false;        // ← добавить
   };
 
   const handleToggle = (field: Field, newState: boolean) => {

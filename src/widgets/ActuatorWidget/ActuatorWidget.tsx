@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect  } from 'react';
 import styles from './ActuatorWidget.module.css';
 import Iswitch from '../../components/Iswitch/Iswitch';
 
@@ -10,8 +10,10 @@ interface Props {
   onStepModeToggle?: (active: boolean) => void;
   onPrecisionModeToggle?: (active: boolean) => void;
   onPulse?: () => void;
-  initializationStatus?: string;
   currentMode?: string;
+  send?: (cmd: string) => void;
+  lastMessage?: string | null;
+  isConnected?: boolean;
 }
 
 export default function ActuatorWidget({
@@ -21,14 +23,76 @@ export default function ActuatorWidget({
   onPosChange,
   onStepModeToggle,
   onPrecisionModeToggle,
-  initializationStatus = 'Готов',
-  currentMode = 'Режим 1'
+  currentMode = 'Режим 1',
+  send,
+  lastMessage,
+  isConnected = false,
 }: Props) {
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
   const [isStepModeOn, setIsStepModeOn] = useState(false);
 
+  const [currentPos, setCurrentPos] = useState(0);
+
+  const [initializationStatus, setInitializationStatus] = useState("Готов");
+
+  const [isHoming, setIsHoming] = useState(false);
+
+  // ↓ ref для send, чтобы useEffect опроса не перезапускался
+  const sendRef = useRef(send);
+  useEffect(() => {
+    sendRef.current = send;
+  }, [send]);
+
+    // ↓ парсинг ответа от МК
+  useEffect(() => {
+    if (!lastMessage) return;
+
+    console.log('[ActuatorWidget] Received:', lastMessage);
+
+    if (lastMessage.startsWith('Mpos is')) {
+      // "Mpos is 12300" → "12300" → 12300 (микрометры, int32)
+      const raw = lastMessage.replace('Mpos is ', '').trim();
+      const microns = parseInt(raw, 10);
+
+      if (!isNaN(microns)) {
+        setCurrentPos(microns / 1000);   // µm → mm, храним полную точность
+        console.log('[ActuatorWidget] Pos:', microns, 'µm →', (microns / 1000).toFixed(1), 'mm');
+      }
+    }
+    if (isHoming && lastMessage.includes('is_home = true')) {
+      console.log('[ActuatorWidget] Homing complete');
+      setIsHoming(false);
+      setInitializationStatus("Готов");
+    }
+  }, [lastMessage, isHoming]);
+
+  // ↓ периодический опрос позиции (раз в секунду)
+  useEffect(() => {
+    console.log('[ActuatorWidget] Polling effect started');
+    if (!isConnected) return;
+
+    sendRef.current?.("amove current");   // запрос сразу после подключения
+
+    const interval = setInterval(() => {
+      sendRef.current?.("amove current");
+    }, 500);
+
+    return () => {
+      console.log('[ActuatorWidget] Polling effect cleaned up');
+      clearInterval(interval);
+    };
+  }, [isConnected]);   // ← только isConnected!
+
   const handleHomeClick = () => {
+    // сообщаем наружу, если App всё ещё слушает
     if (onHomeClick) onHomeClick();
+
+    // локальная логика парковки
+    if (isConnected) {
+      sendRef.current?.("amove home");
+      setIsHoming(true);
+      setInitializationStatus("Инициализация...");
+    }
   };
 
   const isMovingRef = useRef(false);
@@ -75,11 +139,13 @@ export default function ActuatorWidget({
           ДОМОЙ
           </button>
           <span className={styles.statusLabel}>Статус инициализации:</span>
-          <span
-            className={`${styles.statusValue} ${isReady ? styles.ready : styles.notReady}`}
-          >
+          <span className={`${styles.statusValue} ${isReady ? styles.ready : styles.notReady}`}>
             {initializationStatus}
           </span>
+          <div className={styles.DroGroup}>
+            <span className={styles.DroValue}>{currentPos.toFixed(1)}</span>
+            <span className={styles.DroLabel}>mm</span>
+          </div>
         </div>
       </div>
 
@@ -106,7 +172,7 @@ export default function ActuatorWidget({
 
       {/* 3. Панель управления положением */}
       <div className={`${styles.panel} ${!isStepModeOn ? styles.disabled : ''}`}>
-        <Iswitch checked={isStepModeOn} onChange={handleStepModeToggle} />
+        <Iswitch checked={isStepModeOn} onChange={handleStepModeToggle} disabled={!isReady} />
         <span>ШАГОВЫЙ РЕЖИМ</span>
 
         <div className={styles.panelPos}>
@@ -125,7 +191,7 @@ export default function ActuatorWidget({
 
       {/* 4. Панель плавного управления */}
       <div className={`${styles.panel} ${!isPrecisionModeOn ? styles.disabled : ''}`}>
-        <Iswitch checked={isPrecisionModeOn} onChange={handlePrecisionModeToggle} />
+        <Iswitch checked={isPrecisionModeOn} onChange={handlePrecisionModeToggle} disabled={!isReady} />
         <span>ПЛАВНЫЙ РЕЖИМ</span>
 
         <div className={styles.panelPos}>

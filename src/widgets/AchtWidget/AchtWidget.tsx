@@ -8,23 +8,31 @@ const MAX_TEMP = 600;
 
 interface Props {
   label: string;
+
+  send?: (cmd: string) => void;
+  lastMessage?: string | null;
+  isConnected?: boolean;
+
   onHeatChange?: (active: boolean) => void;
   onFanChange?: (active: boolean) => void;
   onHeater?: (command: string) => void;
   onFan?: (command: string) => void;
   onValueSubmit?: (value: number) => void;
-  currentTemp?: number;
 }
 
 export default function AchtWidget({
   label,
+  send,
+  lastMessage,
+  isConnected = false,
   onHeatChange,
   onFanChange,
-  onValueSubmit,
   onHeater,
   onFan,
-  currentTemp = 0,
+  onValueSubmit,
 }: Props) {
+  const [currentTemp, setCurrentTemp] = useState(24.5);
+
   const [isHeatOn, setIsHeatOn] = useState(false);
   const [isFanOn, setIsFanOn] = useState(false);
   const [inputValue, setInputValue] = useState('0');
@@ -37,6 +45,36 @@ export default function AchtWidget({
   const tileRef = useRef<HTMLDivElement>(null);
   const focusIntervalRef = useRef<number | null>(null);
   const naturalBottomRef = useRef<number | null>(null);
+
+  // ↓ хранилище актуальной ссылки на send
+  const sendRef = useRef(send);
+  useEffect(() => {
+    sendRef.current = send;
+  }, [send]);
+
+  // ↓ парсинг входящих сообщений
+  useEffect(() => {
+    if (!lastMessage) return;
+    console.log('[AchtWidget] Received:', lastMessage);
+    if (lastMessage.startsWith('Heat is')) {
+      const raw = parseFloat(lastMessage.replace('Heat is ', '').trim());
+      if (!isNaN(raw)) {
+        const tempValue = raw / 10;
+        setCurrentTemp(tempValue);
+        console.log('[AchtWidget] Temp updated to:', tempValue);
+      }
+    }
+  }, [lastMessage]);
+
+  // ↓ периодический опрос
+  useEffect(() => {
+    if (!isConnected) return;
+    sendRef.current?.("heat current");   // запрос сразу после подключения
+    const interval = setInterval(() => {
+      sendRef.current?.("heat current");
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isConnected]);                     // ← только isConnected!
 
   // --- Возврат фокуса ---
   const stopFocusRetries = useCallback(() => {

@@ -4,7 +4,7 @@
   background-color: #39393d;
   border-radius: 13px;
   position: relative;
-  cursor: pointer;
+  cursor: default;
   transition: background-color 0.3s ease;
   display: inline-block;
   vertical-align: middle;
@@ -16,7 +16,6 @@
 
 .switch.disabled {
   opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .handle {
