@@ -1,16 +1,25 @@
-import { useState, useRef, useEffect  } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import styles from './ActuatorWidget.module.css';
 import Iswitch from '../../components/Iswitch/Iswitch';
+import ModeSelect from '../../components/ModeSelect/ModeSelect';
+import CreateMIRAmode from '../../components/Modals/CreateMIRAmode/CreateMIRAmode';
+import {
+  loadSettings,
+  saveSettings,
+  generateId,
+  MiraPosition,
+} from '../../utils/settings';
 
 interface Props {
   label: string;
   onHomeClick?: () => void;
-  onModeChange?: (mode: string) => void;
+  onModeChange?: (modeId: string) => void;      // выбор в списке (без отправки)
+  onExecute?: (command: string) => void;         // нажатие «ВЫПОЛНИТЬ»
   onPosChange?: (mode: string) => void;
   onStepModeToggle?: (active: boolean) => void;
   onPrecisionModeToggle?: (active: boolean) => void;
   onPulse?: () => void;
-  currentMode?: string;
+  currentMode?: string;                          // id выбранной позиции (снаружи)
   send?: (cmd: string) => void;
   lastMessage?: string | null;
   isConnected?: boolean;
@@ -20,43 +29,49 @@ export default function ActuatorWidget({
   label,
   onHomeClick,
   onModeChange,
+  onExecute,
   onPosChange,
   onStepModeToggle,
   onPrecisionModeToggle,
-  currentMode = 'Режим 1',
+  currentMode = '',
   send,
   lastMessage,
   isConnected = false,
 }: Props) {
   const [isPrecisionModeOn, setIsPrecisionModeOn] = useState(false);
   const [isStepModeOn, setIsStepModeOn] = useState(false);
-
   const [currentPos, setCurrentPos] = useState(0);
-
   const [initializationStatus, setInitializationStatus] = useState("Готов");
-
   const [isHoming, setIsHoming] = useState(false);
 
-  // ↓ ref для send, чтобы useEffect опроса не перезапускался
+  // ↓ Список сохранённых позиций
+  const [positions, setPositions] = useState<MiraPosition[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const sendRef = useRef(send);
   useEffect(() => {
     sendRef.current = send;
   }, [send]);
 
-    // ↓ парсинг ответа от МК
+  // Загрузка settings.json при старте
+  useEffect(() => {
+    (async () => {
+      const s = await loadSettings();
+      setPositions(s.positions);
+      console.log('[ActuatorWidget] Loaded positions:', s.positions);
+    })();
+  }, []);
+
+  // Парсинг ответов МК
   useEffect(() => {
     if (!lastMessage) return;
-
     console.log('[ActuatorWidget] Received:', lastMessage);
 
     if (lastMessage.startsWith('Mpos is')) {
-      // "Mpos is 12300" → "12300" → 12300 (микрометры, int32)
       const raw = lastMessage.replace('Mpos is ', '').trim();
       const microns = parseInt(raw, 10);
-
       if (!isNaN(microns)) {
-        setCurrentPos(microns / 1000);   // µm → mm, храним полную точность
-        console.log('[ActuatorWidget] Pos:', microns, 'µm →', (microns / 1000).toFixed(1), 'mm');
+        setCurrentPos(microns / 1000);
       }
     }
     if (isHoming && lastMessage.includes('is_home = true')) {
@@ -66,28 +81,18 @@ export default function ActuatorWidget({
     }
   }, [lastMessage, isHoming]);
 
-  // ↓ периодический опрос позиции (раз в секунду)
+  // Опрос позиции
   useEffect(() => {
-    console.log('[ActuatorWidget] Polling effect started');
     if (!isConnected) return;
-
-    sendRef.current?.("amove current");   // запрос сразу после подключения
-
+    sendRef.current?.("amove current");
     const interval = setInterval(() => {
       sendRef.current?.("amove current");
     }, 500);
-
-    return () => {
-      console.log('[ActuatorWidget] Polling effect cleaned up');
-      clearInterval(interval);
-    };
-  }, [isConnected]);   // ← только isConnected!
+    return () => clearInterval(interval);
+  }, [isConnected]);
 
   const handleHomeClick = () => {
-    // сообщаем наружу, если App всё ещё слушает
     if (onHomeClick) onHomeClick();
-
-    // локальная логика парковки
     if (isConnected) {
       sendRef.current?.("amove home");
       setIsHoming(true);
@@ -97,21 +102,51 @@ export default function ActuatorWidget({
 
   const isMovingRef = useRef(false);
 
-  const handleModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const mode = e.target.value;
-    if (onModeChange) onModeChange(mode);
+  const handleModeSelect = (id: string) => {
+    if (onModeChange) onModeChange(id);
+  };
+
+  const handleExecute = () => {
+    const pos = positions.find((p) => p.id === currentMode);
+    if (!pos) return;
+    onExecute?.(`amove ${pos.position.toFixed(1)}`);
+  };
+  // --- Работа со списком позиций ---
+
+  const handleCreatePosition = async (name: string, position: number) => {
+    const newPos: MiraPosition = { id: generateId(), name, position };
+    const updated = [...positions, newPos];
+    setPositions(updated);
+    await saveSettings({ positions: updated });
+    setIsModalOpen(false);
+    // Автоматически выбираем созданную позицию
+    if (onModeChange) onModeChange(newPos.id);
+  };
+
+  const handleDeletePosition = async (id: string) => {
+    const updated = positions.filter((p) => p.id !== id);
+    setPositions(updated);
+    await saveSettings({ positions: updated });
+
+    // Если удалили выбранную — сбросим выбор
+    if (id === currentMode && updated.length > 0 && onModeChange) {
+      onModeChange(updated[0].id);
+    }
+    if (updated.length === 0 && onModeChange) {
+      onModeChange('');
+    }
   };
 
   const handleStepModeToggle = () => {
     const newState = !isStepModeOn;
     setIsStepModeOn(newState);
-    if (onStepModeToggle) onStepModeToggle(newState);
+    onStepModeToggle?.(newState);
   };
 
   const handlePrecisionModeToggle = () => {
     const newState = !isPrecisionModeOn;
     setIsPrecisionModeOn(newState);
-    if (onPrecisionModeToggle) onPrecisionModeToggle(newState);
+    onPrecisionModeToggle?.(newState);
   };
 
   const isReady = initializationStatus === 'Готов';
@@ -132,11 +167,8 @@ export default function ActuatorWidget({
       {/* 1. Панель инициализации */}
       <div className={styles.panel}>
         <div className={styles.statusDisplay}>
-          <button
-          onClick={handleHomeClick}
-          className={styles.homeBtn}
-          >
-          ДОМОЙ
+          <button onClick={handleHomeClick} className={styles.homeBtn}>
+            ДОМОЙ
           </button>
           <span className={styles.statusLabel}>Статус инициализации:</span>
           <span className={`${styles.statusValue} ${isReady ? styles.ready : styles.notReady}`}>
@@ -151,19 +183,24 @@ export default function ActuatorWidget({
 
       {/* 2. Панель выбора положения */}
       <div className={styles.panel}>
-        <select
+        <ModeSelect
+          positions={positions}
           value={currentMode}
-          onChange={handleModeChange}
+          onChange={handleModeSelect}
+          onDelete={handleDeletePosition}
           disabled={!isReady}
-          className={styles.modeSelect}
-        >
-          <option value="Режим 1">НУЛЕВОЕ ПОЛОЖЕНИЕ</option>
-          <option value="Режим 2">MODE 2</option>
-          <option value="Режим 3">MODE 3</option>
-        </select>
+        />
         <button
-          onClick={() => onModeChange?.(currentMode)}
+          onClick={() => setIsModalOpen(true)}
           disabled={!isReady}
+          className={styles.addBtn}
+          title="Создать положение"
+        >
+          +
+        </button>
+        <button
+          onClick={handleExecute}
+          disabled={!isReady || !currentMode}
           className={styles.goBtn}
         >
           ВЫПОЛНИТЬ
@@ -195,93 +232,100 @@ export default function ActuatorWidget({
         <span>ПЛАВНЫЙ РЕЖИМ</span>
 
         <div className={styles.panelPos}>
-        <button
-          onMouseDown={() => {
-            if (!isMovingRef.current) {
-              isMovingRef.current = true;
-              onPosChange?.("-500");
-            }
-          }}
-          onMouseUp={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          onMouseLeave={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          onTouchStart={() => {
-            if (!isMovingRef.current) {
-              isMovingRef.current = true;
-              onPosChange?.("-500");
-            }
-          }}
-          onTouchEnd={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          onTouchCancel={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          className={styles.goBtn}
-          disabled={!isReady || !isPrecisionModeOn}
-        >
-          &lt;&lt;
-        </button>
+          <button
+            onMouseDown={() => {
+              if (!isMovingRef.current) {
+                isMovingRef.current = true;
+                onPosChange?.("-500");
+              }
+            }}
+            onMouseUp={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            onMouseLeave={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            onTouchStart={() => {
+              if (!isMovingRef.current) {
+                isMovingRef.current = true;
+                onPosChange?.("-500");
+              }
+            }}
+            onTouchEnd={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            onTouchCancel={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            className={styles.goBtn}
+            disabled={!isReady || !isPrecisionModeOn}
+          >
+            &lt;&lt;
+          </button>
 
-        <button
-          onMouseDown={() => {
-            if (!isMovingRef.current) {
-              isMovingRef.current = true;
-              onPosChange?.("+500");
-            }
-          }}
-          onMouseUp={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          onMouseLeave={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          onTouchStart={() => {
-            if (!isMovingRef.current) {
-              isMovingRef.current = true;
-              onPosChange?.("+500");
-            }
-          }}
-          onTouchEnd={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          onTouchCancel={() => {
-            if (isMovingRef.current) {
-              isMovingRef.current = false;
-              onPosChange?.("0");
-            }
-          }}
-          className={styles.goBtn}
-          disabled={!isReady || !isPrecisionModeOn}
-        >
-          &gt;&gt;
-        </button>
+          <button
+            onMouseDown={() => {
+              if (!isMovingRef.current) {
+                isMovingRef.current = true;
+                onPosChange?.("+500");
+              }
+            }}
+            onMouseUp={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            onMouseLeave={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            onTouchStart={() => {
+              if (!isMovingRef.current) {
+                isMovingRef.current = true;
+                onPosChange?.("+500");
+              }
+            }}
+            onTouchEnd={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            onTouchCancel={() => {
+              if (isMovingRef.current) {
+                isMovingRef.current = false;
+                onPosChange?.("0");
+              }
+            }}
+            className={styles.goBtn}
+            disabled={!isReady || !isPrecisionModeOn}
+          >
+            &gt;&gt;
+          </button>
         </div>
       </div>
+
+      {/* Модальное окно создания положения */}
+      <CreateMIRAmode
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleCreatePosition}
+      />
     </div>
   );
 }

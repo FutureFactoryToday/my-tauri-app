@@ -12,6 +12,12 @@
   z-index: 1000;
 }
 
+/* Единый размер всех клавиш */
+:root {
+  --key-size: 52px;
+  --key-gap: 6px;
+}
+
 /* Поле предпросмотра */
 .previewRow {
   display: flex;
@@ -72,25 +78,23 @@
 .row {
   display: flex;
   justify-content: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.row:last-child {
-  margin-bottom: 0;
+  gap: var(--key-gap);
 }
 
 .key {
-  width: 100px;
-  padding: 16px 0;
+  width: var(--key-size);
+  height: var(--key-size);
+  padding: 0;
   background-color: #1c77bd;
   color: #fff;
   border: none;
   border-radius: 0;
-  font-size: 26px;
+  font-size: 22px;
   font-weight: 700;
   cursor: pointer;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.15s;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   user-select: none;
@@ -106,4 +110,100 @@
   width: 100px;
   padding: 16px 0;
   visibility: hidden;
+}
+
+/* ───── Контейнер с двумя блоками (буквы + цифры) ───── */
+.keyboardBody {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+/* Левая часть — буквы */
+.lettersBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--key-gap);
+}
+
+.rowLetters {
+  display: flex;
+  justify-content: center;
+  gap: var(--key-gap);
+}
+
+/* Правая часть — цифры */
+.numbersBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--key-gap);
+}
+
+/* ───── Буквенные клавиши ───── */
+.keyLetter {
+  width: var(--key-size);
+  height: var(--key-size);
+  padding: 0;
+  background-color: #1c77bd;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  font-size: 20px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.15s, transform 0.1s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keyLetter:active {
+  background-color: #0056b3;
+  transform: scale(0.96);
+}
+
+/* Широкие клавиши-модификаторы (Shift, Backspace) */
+.keyModifier {
+  font-size: 22px;
+}
+
+/* Пробел — растягивается на всю ширину буквенного блока */
+.keySpace {
+  width: 100%;
+  height: var(--key-size);
+  padding: 0;
+  background-color: #1c77bd;
+  color: #fff;
+  border: none;
+  border-radius: 0;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.keySpace:active {
+  background-color: #0056b3;
+  transform: scale(0.98);
+}
+
+/* Shift активен — «следующая буква заглавная» */
+.keyShiftActive {
+  background-color: #e8a33d;      /* оранжевый — заметно */
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+/* Caps Lock активен — «все буквы заглавные» */
+.keyCapsActive {
+  background-color: #d9534f;      /* красный — «залипание» */
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45);
 }

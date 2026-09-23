@@ -1,4 +1,10 @@
-import { readTextFile, writeTextFile, exists, BaseDirectory } from '@tauri-apps/plugin-fs';
+import {
+  readTextFile,
+  writeTextFile,
+  exists,
+  mkdir,
+  BaseDirectory,
+} from '@tauri-apps/plugin-fs';
 
 export interface MiraPosition {
   id: string;
@@ -24,7 +30,7 @@ export async function loadSettings(): Promise<AppSettings> {
   try {
     const fileExists = await exists(SETTINGS_FILE, { baseDir: BaseDirectory.AppConfig });
     if (!fileExists) {
-      await saveSettings(DEFAULT_SETTINGS);
+      await saveSettings(DEFAULT_SETTINGS);   // saveSettings теперь создаст папку
       return DEFAULT_SETTINGS;
     }
     const content = await readTextFile(SETTINGS_FILE, { baseDir: BaseDirectory.AppConfig });
@@ -37,9 +43,21 @@ export async function loadSettings(): Promise<AppSettings> {
 
 export async function saveSettings(settings: AppSettings): Promise<void> {
   try {
+    // Создаём директорию, если её нет (recursive — аналог mkdir -p)
+    await mkdir('', {
+      baseDir: BaseDirectory.AppConfig,
+      recursive: true,
+    });
+  } catch (e) {
+    // Если директория уже существует — mkdir кинет ошибку, это не страшно
+    console.log('[settings] mkdir skipped:', e);
+  }
+
+  try {
     await writeTextFile(SETTINGS_FILE, JSON.stringify(settings, null, 2), {
       baseDir: BaseDirectory.AppConfig,
     });
+    console.log('[settings] saved:', settings);
   } catch (e) {
     console.error('[settings] save failed:', e);
   }

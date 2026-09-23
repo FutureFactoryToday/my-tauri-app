@@ -12,7 +12,7 @@ import { useCncServer } from './hooks/useCncServer';
 export default function App() {
   const {isConnected, isDeviceConnected, send, lastMessage } = useCncServer("ws://localhost:8080/ws");
 
-  const [currentMode, setCurrentMode] = useState("Режим 1");
+  const [currentMode, setCurrentMode] = useState("");
 
   return (
     <Shell>
@@ -39,33 +39,21 @@ export default function App() {
           isConnected={isConnected}
           onHomeClick={() => {
             console.log("Home button clicked");
-            if (isConnected) {
-              send("amove home");
-            }
+            if (isConnected) send("amove home");
           }}
-          onModeChange={(mode) => {
-            console.log("Mode changed to:", mode);
-            setCurrentMode(mode);
-            if (isConnected) {
-              switch (mode) {
-                case "Режим 1":
-                  send("amove zero"); // Быстрое перемещение в позицию 1
-                  break;
-                case "Режим 2":
-                  send("G0 X50 Y50"); // Быстрое перемещение в позицию 2
-                  break;
-                case "Режим 3":
-                  send("G0 X100 Y100"); // Быстрое перемещение в позицию 3
-                  break;
-                default:
-                  break;
-              }
-            }
+          onModeChange={(modeId) => {
+            // только обновляем стейт — НИКАКИХ send
+            console.log("Mode selected:", modeId);
+            setCurrentMode(modeId);
+          }}
+          onExecute={(command) => {
+            console.log("Execute command:", command);
+            if (isConnected) send(command);
           }}
           onPosChange={(value) => {
             console.log("Move by:", value);
             if (isConnected) {
-              const cleanValue = value.replace('+', ''); // убираем знак +
+              const cleanValue = value.replace('+', '');
               send(`imove ${cleanValue}`);
             }
           }}

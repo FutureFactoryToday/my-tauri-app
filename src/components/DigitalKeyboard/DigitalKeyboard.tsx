@@ -1,30 +1,54 @@
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import styles from './DigitalKeyboard.module.css';
 
-interface DigitalKeyboardProps {
+type Language = 'en' | 'ru';
+
+const LAYOUTS: Record<Language, { row1: string[]; row2: string[]; row3: string[] }> = {
+  en: {
+    row1: ['Q','W','E','R','T','Y','U','I','O','P'],
+    row2: ['A','S','D','F','G','H','J','K','L'],
+    row3: ['Z','X','C','V','B','N','M'],
+  },
+  ru: {
+    row1: ['Й','Ц','У','К','Е','Н','Г','Ш','Щ','З','Х','Ъ'],
+    row2: ['Ф','Ы','В','А','П','Р','О','Л','Д','Ж','Э'],
+    row3: ['Я','Ч','С','М','И','Т','Ь','Б','Ю','Ё'],
+  },
+};
+
+interface DigitalKeyboardProps<T extends HTMLElement = HTMLElement> {
   open: boolean;
   onClose: () => void;
   onChange: (newValue: string) => void;
-  targetRef?: React.RefObject<HTMLElement>;
+  targetRef?: React.RefObject<T | null>;
   onHeightChange?: (height: number) => void;
+  initialValue?: string;
+  maxLength?: number;
+  validate?: (candidate: string) => boolean;
 }
 
-const DigitalKeyboard: React.FC<DigitalKeyboardProps> = ({
+const DigitalKeyboard = <T extends HTMLElement = HTMLElement>({
   open,
   onClose,
   onChange,
   targetRef,
   onHeightChange,
-}) => {
+  initialValue = '',
+  maxLength,
+  validate,
+}: DigitalKeyboardProps<T>) => {
   const [inputValue, setInputValue] = useState('');
+  const [shiftState, setShiftState] = useState<0 | 1 | 2>(0);
+  const [language, setLanguage] = useState<Language>('ru');
   const keyboardRef = useRef<HTMLDivElement>(null);
 
 // 1. Сброс inputValue только при открытии (сравниваем предыдущее состояние open)
 useEffect(() => {
   if (open) {
-    setInputValue('');
+    setInputValue(initialValue);
+    setShiftState(0);
   }
-}, [open]); // теперь только open
+}, [open, initialValue]);
 
 // 2. Обработка стилей targetRef (без сброса inputValue)
 useEffect(() => {
@@ -98,26 +122,47 @@ useEffect(() => {
     return true;
   };
 
-  // Нажатие клавиши – только локальное обновление, onChange НЕ вызываем
-  const handleKeyPress = (char: string) => {
+  const handleKeyPress = (char: string): boolean => {
     if (char === 'backspace') {
       setInputValue(prev => prev.slice(0, -1));
-      return;
+      return true;
     }
 
+    let candidate: string;
     if (char === '.') {
-      if (inputValue.includes('.')) return;
-      const newValue = inputValue === '' ? '0.' : inputValue + '.';
-      if (isValidInput(newValue)) {
-        setInputValue(newValue);
-      }
-      return;
+      if (inputValue.includes('.')) return false;
+      candidate = inputValue === '' ? '0.' : inputValue + '.';
+    } else {
+      candidate = inputValue + char;
     }
 
-    const candidate = inputValue + char;
-    if (isValidInput(candidate)) {
+    if (maxLength !== undefined && candidate.length > maxLength) return false;
+
+    const check = validate ?? isValidInput;
+    if (check(candidate)) {
       setInputValue(candidate);
+      return true;
     }
+    return false;
+  };
+
+  const handleLetterPress = (letter: string) => {
+    // 0 → строчная, 1 и 2 → заглавная
+    const char = shiftState === 0 ? letter.toLowerCase() : letter.toUpperCase();
+    const ok = handleKeyPress(char);
+
+    // Auto-off только для режима «shift» (1), а не для capslock (2)
+    if (ok && shiftState === 1) setShiftState(0);
+  };
+
+  const handleShiftToggle = () => {
+    // 0 → 1 → 2 → 0
+    setShiftState(prev => ((prev + 1) % 3) as 0 | 1 | 2);
+  };
+
+  const switchLanguage = () => {
+    setLanguage(prev => (prev === 'en' ? 'ru' : 'en'));
+    setShiftState(0);   // сбрасываем Shift при смене языка
   };
 
   // Подтверждение (Enter)
@@ -146,33 +191,105 @@ useEffect(() => {
           <span className={styles.previewValue}>{inputValue}</span>
         </div>
 
-        <div className={styles.row}>
-          <button className={styles.key} onClick={() => handleKeyPress('7')}>7</button>
-          <button className={styles.key} onClick={() => handleKeyPress('8')}>8</button>
-          <button className={styles.key} onClick={() => handleKeyPress('9')}>9</button>
-          <button className={styles.key} onClick={() => handleKeyPress('backspace')}>⌫</button>
-        </div>
+          <div className={styles.keyboardBody}>
 
-        <div className={styles.row}>
-          <button className={styles.key} onClick={() => handleKeyPress('4')}>4</button>
-          <button className={styles.key} onClick={() => handleKeyPress('5')}>5</button>
-          <button className={styles.key} onClick={() => handleKeyPress('6')}>6</button>
-          <span className={styles.empty} />
-        </div>
+            {/* ЛЕВАЯ ЧАСТЬ — БУКВЫ */}
+            <div className={styles.lettersBlock} data-lang={language}>
 
-        <div className={styles.row}>
-          <button className={styles.key} onClick={() => handleKeyPress('1')}>1</button>
-          <button className={styles.key} onClick={() => handleKeyPress('2')}>2</button>
-          <button className={styles.key} onClick={() => handleKeyPress('3')}>3</button>
-          <span className={styles.empty} />
-        </div>
+              {/* Ряд 1 */}
+              <div className={styles.rowLetters}>
+                {LAYOUTS[language].row1.map(l => (
+                  <button key={l} className={styles.keyLetter} onClick={() => handleLetterPress(l)}>
+                    {shiftState === 0 ? l.toLowerCase() : l.toUpperCase()}
+                  </button>
+                ))}
+              </div>
 
-        <div className={styles.row}>
-          <button className={styles.key} onClick={() => handleKeyPress('0')}>0</button>
-          <button className={styles.key} onClick={() => handleKeyPress('.')}>.</button>
-          <span className={styles.empty} />
-          <button className={styles.key} onClick={handleSubmit}>↵</button>
-        </div>
+              {/* Ряд 2 */}
+              <div className={styles.rowLetters}>
+                {LAYOUTS[language].row2.map(l => (
+                  <button key={l} className={styles.keyLetter} onClick={() => handleLetterPress(l)}>
+                    {shiftState === 0 ? l.toLowerCase() : l.toUpperCase()}
+                  </button>
+                ))}
+              </div>
+
+              {/* Ряд 3: Shift + ZXCVBNM + Backspace */}
+              <div className={styles.rowLetters}>
+                <button
+                  className={`${styles.keyLetter} ${styles.keyModifier} ${
+                    shiftState === 1 ? styles.keyShiftActive :
+                    shiftState === 2 ? styles.keyCapsActive : ''
+                  }`}
+                  onClick={handleShiftToggle}
+                  title={shiftState === 2 ? 'Caps Lock' : 'Shift'}
+                >
+                  {shiftState === 2 ? '⇪' : '⇧'}
+                </button>
+
+                {LAYOUTS[language].row3.map(l => (
+                  <button key={l} className={styles.keyLetter} onClick={() => handleLetterPress(l)}>
+                    {shiftState === 0 ? l.toLowerCase() : l.toUpperCase()}
+                  </button>
+                ))}
+
+                <button
+                  className={`${styles.keyLetter} ${styles.keyModifier}`}
+                  onClick={() => handleKeyPress('backspace')}
+                >
+                  ⌫
+                </button>
+              </div>
+
+              {/* Ряд 4: Язык + Пробел */}
+              <div className={styles.rowLetters}>
+                <button
+                  className={`${styles.keyLetter} ${styles.keyModifier}`}
+                  onClick={switchLanguage}
+                  title="Сменить язык"
+                >
+                  {language === 'en' ? 'РУ' : 'EN'}
+                </button>
+                <button
+                  className={`${styles.keyLetter} ${styles.keySpace}`}
+                  onClick={() => handleKeyPress(' ')}
+                >
+                  Пробел
+                </button>
+              </div>
+
+            </div>
+
+            {/* ПРАВАЯ ЧАСТЬ — ЦИФРЫ */}
+            <div className={styles.numbersBlock}>
+
+              <div className={styles.row}>
+                <button className={styles.key} onClick={() => handleKeyPress('7')}>7</button>
+                <button className={styles.key} onClick={() => handleKeyPress('8')}>8</button>
+                <button className={styles.key} onClick={() => handleKeyPress('9')}>9</button>
+              </div>
+
+              <div className={styles.row}>
+                <button className={styles.key} onClick={() => handleKeyPress('4')}>4</button>
+                <button className={styles.key} onClick={() => handleKeyPress('5')}>5</button>
+                <button className={styles.key} onClick={() => handleKeyPress('6')}>6</button>
+              </div>
+
+              <div className={styles.row}>
+                <button className={styles.key} onClick={() => handleKeyPress('1')}>1</button>
+                <button className={styles.key} onClick={() => handleKeyPress('2')}>2</button>
+                <button className={styles.key} onClick={() => handleKeyPress('3')}>3</button>
+              </div>
+
+              <div className={styles.row}>
+                <button className={styles.key} onClick={() => handleKeyPress('0')}>0</button>
+                <button className={styles.key} onClick={() => handleKeyPress('.')}>.</button>
+                <button className={styles.key} onClick={handleSubmit}>↵</button>
+              </div>
+
+            </div>
+
+          </div>
       </div>
     </div>
   );

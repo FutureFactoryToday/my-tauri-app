@@ -4,12 +4,18 @@
   "description": "Capability for the main window",
   "windows": ["main"],
   "permissions": [
+    "core:default",
+    "opener:default",
     "fs:allow-read-text-file",
     "fs:allow-write-text-file",
     "fs:allow-exists",
+    "fs:allow-mkdir",    
     {
       "identifier": "fs:scope",
-      "allow": [{ "path": "$APPCONFIG/**" }]
+      "allow": [
+        { "path": "$APPCONFIG" },
+        { "path": "$APPCONFIG/**" }
+      ]
     }
   ]
 }

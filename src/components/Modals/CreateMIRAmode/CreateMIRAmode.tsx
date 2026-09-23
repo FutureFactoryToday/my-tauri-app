@@ -1,18 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './CreateMIRAmode.module.css';
+import DigitalKeyboard from '../../DigitalKeyboard/DigitalKeyboard'; 
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (name: string, position: number) => void;
-  /** Колбэк при фокусе поля — здесь вы открываете DigitalKeyboard */
-  onFieldFocus?: (field: 'name' | 'position', currentValue: string) => void;
 }
 
-export default function CreateMIRAmode({ isOpen, onClose, onSubmit, onFieldFocus }: Props) {
-  const [name, setName] = useState('');
-  const [position, setPosition] = useState('');
-  const [error, setError] = useState<string | null>(null);
+export default function CreateMIRAmode({ isOpen, onClose, onSubmit }: Props) {
+    const [name, setName] = useState('');
+    const [position, setPosition] = useState('');
+    const [error, setError] = useState<string | null>(null);
+
+    const [activeField, setActiveField] = useState<'name' | 'position' | null>(null);
+
+    const nameRef = useRef<HTMLInputElement>(null);
+    const positionRef = useRef<HTMLInputElement>(null);
 
   // Сброс при открытии
   useEffect(() => {
@@ -25,62 +29,53 @@ export default function CreateMIRAmode({ isOpen, onClose, onSubmit, onFieldFocus
 
   if (!isOpen) return null;
 
-  // Наименование: любые цифры и точки, максимум 15 символов
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    // Разрешаем цифры, точку и (опционально) — вообще любые символы.
-    // По ТЗ: "какие угодно цифры и точки в любом количестве и порядке, но не более 15 символов"
-    if (val.length <= 15) {
-      setName(val);
+  // «Наименование»: только цифры и точки, до 15 символов
+const validateName = (candidate: string): boolean => {
+    return /^[A-Za-zА-Яа-я0-9.\s]*$/.test(candidate);
+};
+
+    // «Положение»: 0..90, один знак после запятой
+const validatePosition = (candidate: string): boolean => {
+    if (candidate === '') return true;
+    if (!/^[0-9]*\.?[0-9]?$/.test(candidate)) return false;
+
+    const num = parseFloat(candidate);
+    if (isNaN(num)) return false;
+    if (num < 0 || num > 90) return false;
+
+    // запрет лишних ведущих нулей: "00", "05" — но "0", "0.", "0.5" разрешены
+    if (candidate.length > 1 && candidate[0] === '0' && candidate[1] !== '.') {
+        return false;
     }
-  };
+    return true;
+};
 
-  // Положение: число от 0 до 90, 1 знак после запятой
-  const handlePositionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value.replace(',', '.');       // запятая → точка
-    val = val.replace(/[^0-9.]/g, '');                // только цифры и точка
-
-    // Только одна точка
-    const parts = val.split('.');
-    if (parts.length > 2) {
-      val = parts[0] + '.' + parts.slice(1).join('');
-    }
-
-    // Не больше 1 знака после запятой
-    if (parts[1] !== undefined && parts[1].length > 1) {
-      val = parts[0] + '.' + parts[1].slice(0, 1);
-    }
-
-    setPosition(val);
-  };
-
-  const handleSubmit = () => {
+const handleSubmit = () => {
     setError(null);
 
     if (!name.trim()) {
-      setError('Введите наименование');
-      return;
+        setError('Введите наименование');
+        return;
     }
 
     const posNum = parseFloat(position);
     if (isNaN(posNum)) {
-      setError('Введите корректное положение');
-      return;
+        setError('Введите корректное положение');
+        return;
     }
     if (posNum < 0 || posNum > 90) {
-      setError('Положение должно быть от 0 до 90 мм');
-      return;
+        setError('Положение должно быть от 0 до 90 мм');
+        return;
     }
 
-    // Округляем до 1 знака на всякий случай
     const rounded = Math.round(posNum * 10) / 10;
     onSubmit(name.trim(), rounded);
-  };
+};
 
-  return (
+return (
+  <>                                                              {/* ← Fragment */}
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        {/* Title bar */}
         <div className={styles.titleBar}>
           <span className={styles.title}>Создание рабочего положения МИРЫ</span>
           <button className={styles.closeBtn} onClick={onClose} title="Закрыть">
@@ -88,16 +83,16 @@ export default function CreateMIRAmode({ isOpen, onClose, onSubmit, onFieldFocus
           </button>
         </div>
 
-        {/* Body */}
         <div className={styles.body}>
           <div className={styles.row}>
             <label className={styles.label}>Наименование</label>
             <input
+              ref={nameRef}
               className={styles.input}
               type="text"
               value={name}
-              onChange={handleNameChange}
-              onFocus={() => onFieldFocus?.('name', name)}
+              readOnly
+              onFocus={() => setActiveField('name')}
               maxLength={15}
             />
           </div>
@@ -105,12 +100,12 @@ export default function CreateMIRAmode({ isOpen, onClose, onSubmit, onFieldFocus
           <div className={styles.row}>
             <label className={styles.label}>Положение</label>
             <input
+              ref={positionRef}
               className={`${styles.input} ${styles.inputPosition}`}
               type="text"
-              inputMode="decimal"
               value={position}
-              onChange={handlePositionChange}
-              onFocus={() => onFieldFocus?.('position', position)}
+              readOnly
+              onFocus={() => setActiveField('position')}
             />
             <span className={styles.unit}>мм</span>
           </div>
@@ -125,5 +120,31 @@ export default function CreateMIRAmode({ isOpen, onClose, onSubmit, onFieldFocus
         </div>
       </div>
     </div>
-  );
+
+    <DigitalKeyboard
+      open={activeField !== null}
+      targetRef={
+        activeField === 'name' ? nameRef :
+        activeField === 'position' ? positionRef :
+        undefined
+      }
+      initialValue={
+        activeField === 'name' ? name :
+        activeField === 'position' ? position :
+        ''
+      }
+      maxLength={activeField === 'name' ? 15 : undefined}
+      validate={
+        activeField === 'name' ? validateName :
+        activeField === 'position' ? validatePosition :
+        undefined
+      }
+      onChange={(value) => {
+        if (activeField === 'name') setName(value);
+        if (activeField === 'position') setPosition(value);
+      }}
+      onClose={() => setActiveField(null)}
+    />
+  </>
+);
 }

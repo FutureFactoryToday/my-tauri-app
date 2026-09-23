@@ -224,6 +224,19 @@
   font-weight: bold;
 }
 
+.addBtn {
+  width: 40px;  
+  background: #1c77bd;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 1px;
+  cursor: default;
+  font-family: 'Arial';
+  font-size: 1rem;
+  font-weight: bold;
+}
+
 .goBtn:active {
   background: #0056b3;
 }
