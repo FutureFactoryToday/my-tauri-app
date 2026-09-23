@@ -74,7 +74,7 @@ const handleSubmit = () => {
 
 return (
   <>                                                              {/* ← Fragment */}
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <div className={styles.titleBar}>
           <span className={styles.title}>Создание рабочего положения МИРЫ</span>
