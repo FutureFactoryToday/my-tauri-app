@@ -18,7 +18,7 @@ export default function App() {
     <Shell>
         {/* LogoWidget */}
         <LogoWidget 
-          label="СОКМ-4-1600 Сер.№26002"
+          label="v1.26"
         />
       <div className={styles.dashboard}>
         {/* Первая плитка открывает окно */}
@@ -125,13 +125,14 @@ export default function App() {
 
       {/* Индикаторы статуса внизу страницы */}
       <div className={styles.statusPanel} style={{ padding: '10px', fontSize: '16px', display: 'flex', gap: '30px'}}>
-        <div style={{ color: isConnected ? '#0f0' : '#f00' }}>
-          SERVER (L2): {isConnected ? "ONLINE" : "OFFLINE"}
+        <div style={{ color: isConnected ? 'rgba(0, 255, 0, 0.50)' : '#f00' }}>
+          ncserv (L2): {isConnected ? "CONNECTED" : "NOT FOUND"}
         </div>
         
-        <div style={{ color: isDeviceConnected ? '#0f0' : '#f00' }}>
-          DEVICE (L1): {isDeviceConnected ? "CONNECTED" : "NOT FOUND"}
+        <div style={{ color: isDeviceConnected ? 'rgba(0, 255, 0, 0.5)' : '#f00' }}>
+          СОКМ-4-1600 Сер.№26002 (L1): {isDeviceConnected ? "CONNECTED" : "NOT FOUND"}
         </div>
+        
       </div>
 
     </Shell>

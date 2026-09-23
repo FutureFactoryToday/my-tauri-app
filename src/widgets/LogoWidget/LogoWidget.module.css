@@ -6,15 +6,10 @@
   display: flex;
   flex-direction: row;
   gap: 30px;
-  min-width: 300px;
-  transition: all 0.2s ease;
+  min-width: 320px;
   /* Добавляем эффект среза */
   position: relative;
   overflow: hidden; /* Скрываем лишнее */
-}
-
-.tile:hover { 
-  opacity: 1;
 }
 
 .tile::before {
@@ -46,15 +41,16 @@
 }
 
 .text {
-  color: white;
+  color: rgb(0, 0, 0);
   font-weight: bold;
   font-size: 1.2rem;
 }
 
 .tile {
   display: flex;
-  align-items: center; /* вертикальное выравнивание по центру */
-  gap: 108px;            /* отступ между картинкой и текстом */
+  align-items: flex-end; /* вертикальное выравнивание по центру */
+  justify-content: space-between;
+  gap: 50px;            /* отступ между картинкой и текстом */
   cursor: default;
   padding: 20px 50px;
 }

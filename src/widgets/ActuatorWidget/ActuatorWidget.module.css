@@ -9,7 +9,7 @@
   flex-direction: column;
   gap: 20px;
   min-width: 300px;
-  max-height: 400px; 
+  max-height: 340px; 
   transition: all 0.2s ease;
 
   /* Добавляем эффект среза */
