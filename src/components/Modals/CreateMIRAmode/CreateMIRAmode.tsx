@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './CreateMIRAmode.module.css';
 import DigitalKeyboard from '../../DigitalKeyboard/DigitalKeyboard'; 
 
@@ -17,17 +18,24 @@ export default function CreateMIRAmode({ isOpen, onClose, onSubmit }: Props) {
 
     const nameRef = useRef<HTMLInputElement>(null);
     const positionRef = useRef<HTMLInputElement>(null);
+    const modalRef = useRef<HTMLDivElement>(null);
 
-  // Сброс при открытии
-  useEffect(() => {
-    if (isOpen) {
-      setName('');
-      setPosition('');
-      setError(null);
-    }
-  }, [isOpen]);
+useEffect(() => {
+  if (isOpen && modalRef.current) {
+    modalRef.current.focus();
+  }
+}, [isOpen]);
 
-  if (!isOpen) return null;
+// Сброс при открытии
+useEffect(() => {
+if (isOpen) {
+    setName('');
+    setPosition('');
+    setError(null);
+}
+}, [isOpen]);
+
+if (!isOpen) return null;
 
   // «Наименование»: только цифры и точки, до 15 символов
 const validateName = (candidate: string): boolean => {
@@ -72,10 +80,12 @@ const handleSubmit = () => {
     onSubmit(name.trim(), rounded);
 };
 
-return (
+if (!isOpen) return null;
+
+return createPortal(
   <>                                                              {/* ← Fragment */}
     <div className={styles.overlay}>
-      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div className={styles.modal} ref={modalRef} tabIndex={-1} onClick={(e) => e.stopPropagation()}>
         <div className={styles.titleBar}>
           <span className={styles.title}>Создание рабочего положения МИРЫ</span>
           <button className={styles.closeBtn} onClick={onClose} title="Закрыть">
@@ -145,6 +155,7 @@ return (
       }}
       onClose={() => setActiveField(null)}
     />
-  </>
+  </>,
+  document.body
 );
 }

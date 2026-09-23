@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import { createPortal } from 'react-dom';
 import styles from './DigitalKeyboard.module.css';
 
 type Language = 'en' | 'ru';
@@ -179,7 +180,7 @@ useEffect(() => {
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className={styles.overlay} onClick={handleClose}>
       <div className={styles.keyboard} ref={keyboardRef} onClick={(e) => e.stopPropagation()}>
         <div className={styles.headerRow}>
@@ -291,7 +292,8 @@ useEffect(() => {
 
           </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
