@@ -87,7 +87,7 @@ export default function ActuatorWidget({
     sendRef.current?.("amove current");
     const interval = setInterval(() => {
       sendRef.current?.("amove current");
-    }, 500);
+    }, 2000);
     return () => clearInterval(interval);
   }, [isConnected]);
 

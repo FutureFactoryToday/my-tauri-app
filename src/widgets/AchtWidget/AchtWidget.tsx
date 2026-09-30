@@ -3,8 +3,8 @@ import styles from './AchtWidget.module.css';
 import Iswitch from '../../components/Iswitch/Iswitch';
 import DigitalKeyboard from '../../components/DigitalKeyboard/DigitalKeyboard';
 
-const MIN_TEMP = 10;
-const MAX_TEMP = 600;
+const MIN_TEMP = 0.1;
+const MAX_TEMP = 10;
 
 interface Props {
   label: string;

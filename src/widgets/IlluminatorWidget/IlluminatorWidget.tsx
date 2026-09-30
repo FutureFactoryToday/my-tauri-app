@@ -4,7 +4,7 @@ import Iswitch from '../../components/Iswitch/Iswitch';
 import DigitalKeyboard from '../../components/DigitalKeyboard/DigitalKeyboard';
 
 const MIN_POWER = 0;
-const MAX_POWER = 300;
+const MAX_POWER = 100;
 
 type Field = 'vis' | 'ir' | 'uv';
 
@@ -262,7 +262,7 @@ export default function IlluminatorWidget({
             className={`${styles.input} ${hint ? styles.inputErrorText : ''}`}
             inputMode="none"
           />
-          <span>Люмен</span>
+          <span>%</span>
           <button
             className={styles.submitBtn}
             onClick={() => submitField(field)}
@@ -289,8 +289,8 @@ export default function IlluminatorWidget({
       <div className={styles.header}>{label}</div>
 
       {renderRow('vis', 'Видимый (белый)', visOn, visVal, visHint)}
-      {renderRow('ir', '800 нм', irOn, irVal, irHint)}
-      {renderRow('uv', '365 нм', uvOn, uvVal, uvHint)}
+      {renderRow('ir', 'Инфракрасный (850нм)', irOn, irVal, irHint)}
+      {renderRow('uv', 'Видимый (белый)', uvOn, uvVal, uvHint)}
 
       <DigitalKeyboard
         open={isKeyboardOpen}
